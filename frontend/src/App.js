@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import Organizations from './pages/Organizations';
@@ -12,6 +14,8 @@ function App() {
     <Routes>
       {/* Rutas de autenticación sin layout */}
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/register" element={<div>Register Page</div>} />
 
       {/* Rutas con DashboardLayout */}

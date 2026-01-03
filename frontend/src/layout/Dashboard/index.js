@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Box, Toolbar, useMediaQuery, useTheme } from '@mui/material';
 import Header from './Header';
 import Drawer from './Drawer';
+import Breadcrumbs from '../../components/Breadcrumbs';
 
 export default function DashboardLayout() {
   const theme = useTheme();
@@ -32,7 +33,17 @@ export default function DashboardLayout() {
         }}
       >
         <Toolbar />
-        <Outlet />
+        <Box
+          sx={{
+            position: 'relative',
+            minHeight: 'calc(100vh - 110px)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <Breadcrumbs />
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

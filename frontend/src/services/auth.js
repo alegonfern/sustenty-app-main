@@ -29,9 +29,12 @@ export const authService = {
   },
 
   // Login user and save tokens
-  login: (accessToken, refreshToken) => {
-    Cookies.set('access_token', accessToken, { expires: 1 }); // 1 day
-    Cookies.set('refresh_token', refreshToken, { expires: 7 }); // 7 days
+  login: (accessToken, refreshToken, rememberMe = false) => {
+    const accessExpires = rememberMe ? 30 : 1; // 30 days if remember me, else 1 day
+    const refreshExpires = rememberMe ? 60 : 7; // 60 days if remember me, else 7 days
+    
+    Cookies.set('access_token', accessToken, { expires: accessExpires });
+    Cookies.set('refresh_token', refreshToken, { expires: refreshExpires });
   },
 
   // Logout user and remove tokens

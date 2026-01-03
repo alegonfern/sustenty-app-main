@@ -42,7 +42,7 @@ const Login = () => {
   const loginMutation = useMutation(api.login, {
     onSuccess: (response) => {
       const { access, refresh } = response.data;
-      authService.login(access, refresh);
+      authService.login(access, refresh, rememberMe);
       toast.success('¡Inicio de sesión exitoso!');
       navigate('/dashboard');
     },

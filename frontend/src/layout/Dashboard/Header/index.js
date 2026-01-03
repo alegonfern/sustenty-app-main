@@ -9,24 +9,22 @@ import {
   Menu,
   MenuItem,
   useTheme,
-  useMediaQuery,
-  Badge,
-  Tooltip
+  useMediaQuery
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   AccountCircle,
   Logout,
   Dashboard as DashboardIcon,
-  Notifications,
   Business
 } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../../services/auth';
 import { toast } from 'react-toastify';
 import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from '../../../config';
 import CreateOrganizationModal from '../../../components/CreateOrganizationModal';
+import NotificationMenu from '../../../components/NotificationMenu';
 import { api } from '../../../services/api';
 
 export default function Header({ open, handleDrawerToggle }) {
@@ -35,20 +33,6 @@ export default function Header({ open, handleDrawerToggle }) {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [openOrgModal, setOpenOrgModal] = useState(false);
-  const [hasOrganization, setHasOrganization] = useState(false);
-
-  // Verificar si el usuario tiene organizaciones
-  useEffect(() => {
-    const checkOrganizations = async () => {
-      try {
-        const response = await api.getOrganizations();
-        setHasOrganization(response.data.length > 0);
-      } catch (error) {
-        console.error('Error al obtener organizaciones:', error);
-      }
-    };
-    checkOrganizations();
-  }, []);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -77,9 +61,7 @@ export default function Header({ open, handleDrawerToggle }) {
     try {
       await api.createOrganization(data);
       toast.success('¡Organización creada exitosamente!');
-      setHasOrganization(true);
       handleCloseOrgModal();
-      // Navegar a la página de organizaciones
       navigate('/organizations');
     } catch (error) {
       console.error('Error al crear organización:', error);
@@ -122,30 +104,11 @@ export default function Header({ open, handleDrawerToggle }) {
             <MenuIcon />
           </IconButton>
 
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Dashboard
-          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {/* Notificación de crear organización */}
-            {!hasOrganization && (
-              <Tooltip title="Crea tu organización">
-                <IconButton
-                  color="inherit"
-                  onClick={handleOpenOrgModal}
-                  sx={{
-                    bgcolor: 'warning.lighter',
-                    '&:hover': {
-                      bgcolor: 'warning.light'
-                    }
-                  }}
-                >
-                  <Badge badgeContent={1} color="error">
-                    <Notifications color="warning" />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
-            )}
+            {/* Notificaciones */}
+            <NotificationMenu onCreateOrganization={handleOpenOrgModal} />
 
             <IconButton
               size="large"

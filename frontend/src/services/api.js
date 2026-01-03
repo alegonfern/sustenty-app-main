@@ -68,6 +68,8 @@ export const api = {
 
   // Authentication
   login: (credentials) => apiClient.post('/auth/login/', credentials),
+  requestPasswordReset: (data) => apiClient.post('/auth/password-reset-request/', data),
+  resetPassword: (data) => apiClient.post('/auth/password-reset-confirm/', data),
 
   // Organizations
   getOrganizations: () => apiClient.get('/organizations/'),

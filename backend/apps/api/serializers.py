@@ -1,5 +1,49 @@
 from rest_framework import serializers
 from .models import Organization
+import re
+
+
+def validar_rut(rut):
+    """
+    Valida formato y dígito verificador de RUT chileno
+    Acepta formatos: 12.345.678-9, 12345678-9, 123456789
+    """
+    # Limpiar el RUT (quitar puntos y guiones)
+    rut_limpio = rut.replace('.', '').replace('-', '').strip()
+    
+    # Verificar que tenga entre 8 y 9 caracteres
+    if len(rut_limpio) < 8 or len(rut_limpio) > 9:
+        return False
+    
+    # Separar número y dígito verificador
+    rut_numero = rut_limpio[:-1]
+    dv = rut_limpio[-1].upper()
+    
+    # Verificar que el número sea numérico
+    if not rut_numero.isdigit():
+        return False
+    
+    # Calcular dígito verificador
+    suma = 0
+    multiplicador = 2
+    
+    for digito in reversed(rut_numero):
+        suma += int(digito) * multiplicador
+        multiplicador += 1
+        if multiplicador > 7:
+            multiplicador = 2
+    
+    resto = suma % 11
+    dv_calculado = 11 - resto
+    
+    if dv_calculado == 11:
+        dv_esperado = '0'
+    elif dv_calculado == 10:
+        dv_esperado = 'K'
+    else:
+        dv_esperado = str(dv_calculado)
+    
+    return dv == dv_esperado
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -40,6 +84,21 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
             'sector',
             'modo'
         ]
+    
+    def validate(self, data):
+        # Validar que todos los campos estén presentes
+        required_fields = ['nombre', 'rol', 'empleados', 'rut', 'sector', 'modo']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                raise serializers.ValidationError({field: f'El campo {field} es requerido'})
+        
+        # Validar formato de RUT
+        if not validar_rut(data['rut']):
+            raise serializers.ValidationError({
+                'rut': 'RUT inválido. Formato esperado: 12.345.678-9 o 12345678-9'
+            })
+        
+        return data
     
     def create(self, validated_data):
         # El usuario se asigna desde la vista

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -22,7 +23,8 @@ import {
   Add,
   People,
   Category,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Close
 } from '@mui/icons-material';
 import { api } from '../services/api';
 import { toast } from 'react-toastify';
@@ -47,9 +49,12 @@ const MODO_MAP = {
 };
 
 export default function Organizations() {
+  const location = useLocation();
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  const [editingOrg, setEditingOrg] = useState(null);
+  const [viewingOrg, setViewingOrg] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
 
   const fetchOrganizations = async () => {
@@ -67,18 +72,44 @@ export default function Organizations() {
 
   useEffect(() => {
     fetchOrganizations();
-  }, []);
+  }, [location]);
 
   const handleCreateOrganization = async (data) => {
     try {
-      await api.createOrganization(data);
-      toast.success('¡Organización creada exitosamente!');
+      if (editingOrg) {
+        // Actualizar organización existente
+        await api.updateOrganization(editingOrg.id, data);
+        toast.success('¡Organización actualizada exitosamente!');
+      } else {
+        // Crear nueva organización
+        await api.createOrganization(data);
+        toast.success('¡Organización creada exitosamente!');
+      }
       setOpenModal(false);
+      setEditingOrg(null);
       fetchOrganizations();
     } catch (error) {
-      console.error('Error al crear organización:', error);
-      toast.error('Error al crear la organización');
+      console.error('Error al guardar organización:', error);
+      toast.error('Error al guardar la organización');
     }
+  };
+
+  const handleEditClick = (org) => {
+    setEditingOrg(org);
+    setOpenModal(true);
+  };
+
+  const handleViewClick = (org) => {
+    setViewingOrg(org);
+  };
+
+  const handleCloseView = () => {
+    setViewingOrg(null);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setEditingOrg(null);
   };
 
   const handleDeleteClick = (id) => {
@@ -173,7 +204,7 @@ export default function Organizations() {
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
                     <Business color="primary" sx={{ fontSize: 40 }} />
                     <Stack direction="row" spacing={0.5}>
-                      <IconButton size="small" color="primary">
+                      <IconButton size="small" color="primary" onClick={() => handleEditClick(org)}>
                         <Edit fontSize="small" />
                       </IconButton>
                       <IconButton 
@@ -224,7 +255,7 @@ export default function Organizations() {
                 </CardContent>
 
                 <CardActions sx={{ p: 2, pt: 0 }}>
-                  <Button size="small" fullWidth variant="outlined">
+                  <Button size="small" fullWidth variant="outlined" onClick={() => handleViewClick(org)}>
                     Ver Detalles
                   </Button>
                 </CardActions>
@@ -234,12 +265,110 @@ export default function Organizations() {
         </Grid>
       )}
 
-      {/* Modal de creación */}
+      {/* Modal de creación/edición */}
       <CreateOrganizationModal
         open={openModal}
-        onClose={() => setOpenModal(false)}
+        onClose={handleCloseModal}
         onSubmit={handleCreateOrganization}
+        initialData={editingOrg}
+        isEditing={!!editingOrg}
       />
+
+      {/* Modal de ver detalles */}
+      <Dialog
+        open={!!viewingOrg}
+        onClose={handleCloseView}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>
+              Detalles de la Organización
+            </Typography>
+            <IconButton onClick={handleCloseView}>
+              <Close />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers>
+          {viewingOrg && (
+            <Stack spacing={3}>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Nombre de la Organización
+                </Typography>
+                <Typography variant="h6">{viewingOrg.nombre}</Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Rol en la empresa
+                </Typography>
+                <Typography variant="body1">{viewingOrg.rol}</Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Cantidad de empleados
+                </Typography>
+                <Typography variant="body1">{viewingOrg.empleados} empleados</Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  RUT
+                </Typography>
+                <Typography variant="body1">{viewingOrg.rut}</Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Sector/Industria
+                </Typography>
+                <Typography variant="body1">{SECTOR_MAP[viewingOrg.sector] || viewingOrg.sector}</Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Modo de operación
+                </Typography>
+                <Chip 
+                  label={MODO_MAP[viewingOrg.modo] || viewingOrg.modo}
+                  color="primary"
+                  sx={{ mt: 0.5 }}
+                />
+              </Box>
+
+              <Box sx={{ pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                <Typography variant="caption" color="text.secondary">
+                  Fecha de creación
+                </Typography>
+                <Typography variant="body2">
+                  {new Date(viewingOrg.created_at).toLocaleDateString('es-CL', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </Typography>
+              </Box>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseView}>Cerrar</Button>
+          <Button 
+            variant="contained" 
+            startIcon={<Edit />}
+            onClick={() => {
+              handleCloseView();
+              handleEditClick(viewingOrg);
+            }}
+          >
+            Editar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Dialog de confirmación de eliminación */}
       <Dialog

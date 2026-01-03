@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -18,15 +18,15 @@ import {
 import { Close, ArrowBack, ArrowForward, Check } from '@mui/icons-material';
 
 const SECTORS = [
-  'Manufactura',
-  'Tecnología/Software',
-  'Retail/Comercio',
-  'Servicios profesionales',
-  'Alimentos y bebidas',
-  'Construcción',
-  'Logística/Transporte',
-  'Energía',
-  'Turismo/Hospitalidad'
+  { value: 'manufactura', label: 'Manufactura' },
+  { value: 'tecnologia', label: 'Tecnología/Software' },
+  { value: 'retail', label: 'Retail/Comercio' },
+  { value: 'servicios', label: 'Servicios profesionales' },
+  { value: 'alimentos', label: 'Alimentos y bebidas' },
+  { value: 'construccion', label: 'Construcción' },
+  { value: 'logistica', label: 'Logística/Transporte' },
+  { value: 'energia', label: 'Energía' },
+  { value: 'turismo', label: 'Turismo/Hospitalidad' }
 ];
 
 const MODES = [
@@ -44,7 +44,7 @@ const EMPLOYEE_RANGES = [
   'Más de 1000'
 ];
 
-export default function CreateOrganizationModal({ open, onClose, onSubmit }) {
+export default function CreateOrganizationModal({ open, onClose, onSubmit, initialData = null, isEditing = false }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     nombre: '',
@@ -54,6 +54,20 @@ export default function CreateOrganizationModal({ open, onClose, onSubmit }) {
     sector: '',
     modo: ''
   });
+
+  // Cargar datos iniciales cuando se abre en modo edición
+  useEffect(() => {
+    if (open && initialData) {
+      setFormData({
+        nombre: initialData.nombre || '',
+        rol: initialData.rol || '',
+        empleados: initialData.empleados || '',
+        rut: initialData.rut || '',
+        sector: initialData.sector || '',
+        modo: initialData.modo || ''
+      });
+    }
+  }, [open, initialData]);
 
   const steps = [
     'Información Básica',
@@ -223,8 +237,8 @@ export default function CreateOrganizationModal({ open, onClose, onSubmit }) {
                 }}
               >
                 {SECTORS.map((sector) => (
-                  <MenuItem key={sector} value={sector}>
-                    {sector}
+                  <MenuItem key={sector.value} value={sector.value}>
+                    {sector.label}
                   </MenuItem>
                 ))}
               </TextField>
@@ -325,6 +339,9 @@ export default function CreateOrganizationModal({ open, onClose, onSubmit }) {
 
       <DialogContent sx={{ p: { xs: 3, sm: 5 } }}>
         <Box sx={{ mb: 4 }}>
+          <Typography variant="overline" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            {isEditing ? 'Editar Organización' : 'Nueva Organización'}
+          </Typography>
           <Stepper activeStep={currentStep} sx={{ mb: 4 }}>
             {steps.map((label) => (
               <Step key={label}>
@@ -356,7 +373,7 @@ export default function CreateOrganizationModal({ open, onClose, onSubmit }) {
             disabled={!isStepValid()}
             sx={{ minWidth: 120 }}
           >
-            {currentStep === 2 ? 'Crear' : 'Siguiente'}
+            {currentStep === 2 ? (isEditing ? 'Actualizar' : 'Crear') : 'Siguiente'}
           </Button>
         </Stack>
       </DialogContent>
@@ -367,5 +384,7 @@ export default function CreateOrganizationModal({ open, onClose, onSubmit }) {
 CreateOrganizationModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
+  initialData: PropTypes.object,
+  isEditing: PropTypes.bool
 };
