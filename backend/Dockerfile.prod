@@ -1,0 +1,48 @@
+# Multi-stage Dockerfile para producción - Backend
+FROM python:3.11-slim as base
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        postgresql-client \
+        build-essential \
+        libpq-dev \
+        netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM base as dependencies
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+FROM base as runtime
+
+WORKDIR /app
+
+# Copy dependencies
+COPY --from=dependencies /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=dependencies /usr/local/bin /usr/local/bin
+
+# Copy project
+COPY . .
+
+# Create non-root user
+RUN groupadd -r django && useradd -r -g django django
+
+# Create directories and set permissions
+RUN mkdir -p staticfiles media logs \
+    && chown -R django:django /app
+
+# Make scripts executable
+RUN chmod +x docker-entrypoint.sh
+
+# Switch to non-root user
+USER django
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "sustenty.wsgi:application"]
