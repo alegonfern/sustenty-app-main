@@ -23,4 +23,7 @@ urlpatterns = [
     # Organizations
     path('organizations/', views.organization_list_create, name='organization_list_create'),
     path('organizations/<int:pk>/', views.organization_detail, name='organization_detail'),
+    
+    # AI Chat
+    path('chat/', views.chat_ai, name='chat_ai'),
 ]

@@ -9,10 +9,12 @@ import {
   Menu,
   MenuItem,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  styled
 } from '@mui/material';
 import {
   Menu as MenuIcon,
+  MenuOpen as MenuOpenIcon,
   AccountCircle,
   Logout,
   Dashboard as DashboardIcon,
@@ -25,7 +27,28 @@ import { toast } from 'react-toastify';
 import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from '../../../config';
 import CreateOrganizationModal from '../../../components/CreateOrganizationModal';
 import NotificationMenu from '../../../components/NotificationMenu';
+import Search from '../../../components/Search';
 import { api } from '../../../services/api';
+
+// Styled AppBar with smooth transitions
+const AppBarStyled = styled(AppBar, { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  transition: theme.transitions.create(['width', 'margin'], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen
+  }),
+  ...(!open && {
+    width: `calc(100% - ${MINI_DRAWER_WIDTH}px)`
+  }),
+  ...(open && {
+    marginLeft: DRAWER_WIDTH,
+    width: `calc(100% - ${DRAWER_WIDTH}px)`,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen
+    })
+  })
+}));
 
 export default function Header({ open, handleDrawerToggle }) {
   const theme = useTheme();
@@ -71,82 +94,151 @@ export default function Header({ open, handleDrawerToggle }) {
 
   return (
     <>
-      <AppBar
-        position="fixed"
-        elevation={0}
-        sx={{
-          bgcolor: 'background.paper',
-          color: 'text.primary',
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          zIndex: theme.zIndex.drawer + 1,
-          width: matchDownLG ? '100%' : open ? `calc(100% - ${DRAWER_WIDTH}px)` : `calc(100% - ${MINI_DRAWER_WIDTH}px)`,
-          ml: matchDownLG ? 0 : open ? `${DRAWER_WIDTH}px` : `${MINI_DRAWER_WIDTH}px`,
-          transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen
-          })
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="toggle drawer"
-            onClick={handleDrawerToggle}
-            edge="start"
-            sx={{ 
-              mr: 2,
-              bgcolor: open ? 'transparent' : 'action.hover',
-              '&:hover': {
-                bgcolor: 'action.hover'
-              }
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {/* Notificaciones */}
-            <NotificationMenu onCreateOrganization={handleOpenOrgModal} />
-
+      {!matchDownLG ? (
+        <AppBarStyled
+          position="fixed"
+          open={open}
+          elevation={0}
+          sx={{
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            borderBottom: `1px solid`,
+            borderBottomColor: 'divider'
+          }}
+        >
+          <Toolbar>
             <IconButton
-              size="large"
-              onClick={handleMenu}
               color="inherit"
+              aria-label="toggle drawer"
+              onClick={handleDrawerToggle}
+              edge="start"
               sx={{
-                p: 0.5
+                color: 'text.primary',
+                bgcolor: open ? 'transparent' : 'grey.100',
+                ml: { xs: 0, lg: -2 },
+                '&:hover': {
+                  bgcolor: 'grey.100'
+                }
               }}
             >
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                <AccountCircle />
-              </Avatar>
+              {open ? <MenuOpenIcon /> : <MenuIcon />}
             </IconButton>
-            
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              onClick={handleClose}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+
+            {!matchDownLG && <Search />}
+            {matchDownLG && <Box sx={{ width: '100%', ml: 1 }} />}
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {/* Notificaciones */}
+              <NotificationMenu onCreateOrganization={handleOpenOrgModal} />
+
+              <IconButton
+                size="large"
+                onClick={handleMenu}
+                color="inherit"
+                sx={{
+                  p: 0.5
+                }}
+              >
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                  <AccountCircle />
+                </Avatar>
+              </IconButton>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                onClick={handleClose}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem onClick={() => navigate('/dashboard')}>
+                  <DashboardIcon sx={{ mr: 2 }} fontSize="small" />
+                  Mi Dashboard
+                </MenuItem>
+                <MenuItem onClick={() => navigate('/organizations')}>
+                  <Business sx={{ mr: 2 }} fontSize="small" />
+                  Organizaciones
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  <Logout sx={{ mr: 2 }} fontSize="small" />
+                  Cerrar Sesión
+                </MenuItem>
+              </Menu>
+            </Box>
+          </Toolbar>
+        </AppBarStyled>
+      ) : (
+        <AppBar
+          position="fixed"
+          elevation={0}
+          sx={{
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            borderBottom: `1px solid`,
+            borderBottomColor: 'divider',
+            width: '100%'
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="toggle drawer"
+              onClick={handleDrawerToggle}
+              edge="start"
+              sx={{
+                mr: 1,
+                color: 'text.primary'
+              }}
             >
-              <MenuItem onClick={() => navigate('/dashboard')}>
-                <DashboardIcon sx={{ mr: 2 }} fontSize="small" />
-                Mi Dashboard
-              </MenuItem>
-              <MenuItem onClick={() => navigate('/organizations')}>
-                <Business sx={{ mr: 2 }} fontSize="small" />
-                Organizaciones
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                <Logout sx={{ mr: 2 }} fontSize="small" />
-                Cerrar Sesión
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </AppBar>
+              <MenuIcon />
+            </IconButton>
+
+            <Search />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+              <NotificationMenu onCreateOrganization={handleOpenOrgModal} />
+
+              <IconButton
+                size="large"
+                onClick={handleMenu}
+                color="inherit"
+                sx={{
+                  p: 0.5
+                }}
+              >
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                  <AccountCircle />
+                </Avatar>
+              </IconButton>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                onClick={handleClose}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem onClick={() => navigate('/dashboard')}>
+                  <DashboardIcon sx={{ mr: 2 }} fontSize="small" />
+                  Mi Dashboard
+                </MenuItem>
+                <MenuItem onClick={() => navigate('/organizations')}>
+                  <Business sx={{ mr: 2 }} fontSize="small" />
+                  Organizaciones
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  <Logout sx={{ mr: 2 }} fontSize="small" />
+                  Cerrar Sesión
+                </MenuItem>
+              </Menu>
+            </Box>
+          </Toolbar>
+        </AppBar>
+      )}
 
       {/* Modal de creación de organización */}
       <CreateOrganizationModal

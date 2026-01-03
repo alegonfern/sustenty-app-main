@@ -6,6 +6,9 @@ import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import Organizations from './pages/Organizations';
+import Collection from './pages/esg/Collection';
+import Analytics from './pages/esg/Analytics';
+import Actions from './pages/esg/Actions';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layout/Dashboard';
 
@@ -30,8 +33,10 @@ function App() {
         <Route index element={<Home />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="organizations" element={<Organizations />} />
+        <Route path="esg/collection" element={<Collection />} />
+        <Route path="esg/analytics" element={<Analytics />} />
+        <Route path="esg/actions" element={<Actions />} />
         <Route path="users" element={<div>Users Page</div>} />
-        <Route path="reports" element={<div>Reports Page</div>} />
         <Route path="settings" element={<div>Settings Page</div>} />
       </Route>
     </Routes>
