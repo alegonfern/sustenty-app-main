@@ -7,6 +7,7 @@ import AuthCallback from './pages/AuthCallback';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import Help from './pages/Help';
 import Organizations from './pages/Organizations';
 import Teams from './pages/Teams';
 import TeamMembers from './pages/TeamMembers';
@@ -28,6 +29,7 @@ import {
 } from './pages/compliance';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layout/Dashboard';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
 import { AppProvider } from './context/AppContext';
 
 function App() {
@@ -71,8 +73,12 @@ function App() {
         <Route path="team/teams" element={<Teams />} />
         <Route path="team/members" element={<TeamMembers />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="ayuda" element={<Help />} />
       </Route>
     </Routes>
+    
+    {/* Botón flotante de WhatsApp (visible en toda la app después de login) */}
+    <FloatingWhatsApp />
     </AppProvider>
   );
 }

@@ -12,7 +12,8 @@ import {
   Alert,
   IconButton,
   Tooltip,
-  CircularProgress
+  CircularProgress,
+  MobileStepper
 } from '@mui/material';
 import {
   TrendingUp,
@@ -30,7 +31,9 @@ import {
   CalendarMonth,
   Assessment,
   AutoAwesome,
-  Refresh
+  Refresh,
+  KeyboardArrowLeft,
+  KeyboardArrowRight
 } from '@mui/icons-material';
 import MainCard from '../components/MainCard';
 import { api } from '../services/api';
@@ -89,7 +92,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
-  const [sustentiaInsight, setSustentiaInsight] = useState(null);
+  const [sustentiaInsights, setSustentiaInsights] = useState([]);
+  const [activeInsightStep, setActiveInsightStep] = useState(0);
   const [insightLoading, setInsightLoading] = useState(false);
   const [esgData, setEsgData] = useState({
     totalEmissions: 0,
@@ -108,8 +112,20 @@ export default function Home() {
   useEffect(() => {
     loadUser();
     loadESGMetrics();
-    loadSustentIAInsight();
+    loadSustentIAInsights();
   }, []);
+
+  // Auto-avanzar el slider cada 5 segundos
+  useEffect(() => {
+    if (sustentiaInsights.length > 1) {
+      const timer = setInterval(() => {
+        setActiveInsightStep((prevStep) => 
+          prevStep === sustentiaInsights.length - 1 ? 0 : prevStep + 1
+        );
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [sustentiaInsights]);
 
   const loadUser = async () => {
     try {
@@ -218,42 +234,95 @@ export default function Home() {
     }
   };
 
-  const loadSustentIAInsight = async () => {
+  const loadSustentIAInsights = async () => {
     try {
       setInsightLoading(true);
-      const response = await api.getSustentIAInsight();
-      console.log('SustentIA response:', response.data);
-      setSustentiaInsight(response.data);
+      const response = await api.getSustentIAInsights();
+      console.log('SustentIA insights response:', response.data);
+      
+      // Si el backend devuelve un array de insights
+      if (Array.isArray(response.data)) {
+        setSustentiaInsights(response.data);
+      } else if (response.data.insights && Array.isArray(response.data.insights)) {
+        setSustentiaInsights(response.data.insights);
+      } else {
+        // Fallback si es un solo insight
+        setSustentiaInsights([response.data]);
+      }
     } catch (err) {
-      console.error('Error loading SustentIA insight:', err);
+      console.error('Error loading SustentIA insights:', err);
       console.error('Error details:', err.response?.data);
-      // Fallback en caso de error
-      setSustentiaInsight({
-        insight: 'Bienvenido a Sustenty. Comienza explorando las diferentes secciones para gestionar tu impacto ESG.',
-        generated_at: new Date().toISOString(),
-        context: {}
-      });
+      // Fallback en caso de error con mensajes predeterminados
+      setSustentiaInsights([
+        {
+          insight: 'Bienvenido a Sustenty. Comienza explorando las diferentes secciones para gestionar tu impacto ESG.',
+          generated_at: new Date().toISOString(),
+          context: {}
+        },
+        {
+          insight: 'Recuerda registrar tus datos de emisiones regularmente para un seguimiento preciso.',
+          generated_at: new Date().toISOString(),
+          context: {}
+        },
+        {
+          insight: 'Establece objetivos de reducción de emisiones para medir tu progreso.',
+          generated_at: new Date().toISOString(),
+          context: {}
+        },
+        {
+          insight: 'Involucra a tu equipo en las iniciativas de sostenibilidad para mayor impacto.',
+          generated_at: new Date().toISOString(),
+          context: {}
+        },
+        {
+          insight: 'Analiza tus datos ESG para identificar oportunidades de mejora.',
+          generated_at: new Date().toISOString(),
+          context: {}
+        }
+      ]);
     } finally {
       setInsightLoading(false);
     }
   };
 
-  const handleRefreshInsight = async () => {
+  const handleRefreshInsights = async () => {
     setInsightLoading(true);
+    setActiveInsightStep(0);
     try {
-      const response = await api.getSustentIAInsight(true); // Forzar nueva generación
+      const response = await api.getSustentIAInsights(true); // Forzar nueva generación
       console.log('SustentIA refresh response:', response.data);
-      setSustentiaInsight(response.data);
+      
+      if (Array.isArray(response.data)) {
+        setSustentiaInsights(response.data);
+      } else if (response.data.insights && Array.isArray(response.data.insights)) {
+        setSustentiaInsights(response.data.insights);
+      } else {
+        setSustentiaInsights([response.data]);
+      }
     } catch (error) {
-      console.error('Error refreshing insight:', error);
+      console.error('Error refreshing insights:', error);
       console.log('Error details:', error.response);
-      setSustentiaInsight({
-        insight: 'Bienvenido a Sustenty. Estamos procesando tus datos ESG para ofrecerte insights personalizados.',
-        generated_at: new Date().toISOString()
-      });
+      setSustentiaInsights([
+        {
+          insight: 'Bienvenido a Sustenty. Estamos procesando tus datos ESG para ofrecerte insights personalizados.',
+          generated_at: new Date().toISOString()
+        }
+      ]);
     } finally {
       setInsightLoading(false);
     }
+  };
+
+  const handleNextInsight = () => {
+    setActiveInsightStep((prevStep) => 
+      prevStep === sustentiaInsights.length - 1 ? 0 : prevStep + 1
+    );
+  };
+
+  const handlePrevInsight = () => {
+    setActiveInsightStep((prevStep) => 
+      prevStep === 0 ? sustentiaInsights.length - 1 : prevStep - 1
+    );
   };
 
   const calculatePercentage = (value, total) => {
@@ -294,14 +363,21 @@ export default function Home() {
         </MainCard>
       </Grid>
 
-      {/* SustentIA Insight Card */}
+      {/* SustentIA Insights Slider Card */}
       <Grid item xs={12}>
         <MainCard
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: [
+              'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Morado
+              'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', // Rosa
+              'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', // Azul
+              'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', // Verde
+              'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'  // Naranja-Amarillo
+            ][activeInsightStep % 5],
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
+            transition: 'background 0.6s ease-in-out',
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -314,69 +390,113 @@ export default function Home() {
             }
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ position: 'relative', zIndex: 1 }}>
-            <Avatar
-              sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                width: 56,
-                height: 56,
-              }}
-            >
-              <AutoAwesome sx={{ fontSize: 32 }} />
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                <Typography variant="h4" sx={{ color: 'white', fontWeight: 600 }}>
-                  ¿Qué tiene SustentIA para decirte?
-                </Typography>
-                <Tooltip title="Generar nuevo insight">
-                  <IconButton
-                    onClick={handleRefreshInsight}
-                    disabled={insightLoading}
-                    sx={{ 
-                      color: 'white',
-                      bgcolor: 'rgba(255, 255, 255, 0.2)',
-                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' }
-                    }}
-                  >
-                    {insightLoading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : <Refresh />}
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-              
-              {insightLoading && !sustentiaInsight ? (
-                <Stack spacing={1}>
-                  <LinearProgress sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', '& .MuiLinearProgress-bar': { bgcolor: 'white' } }} />
-                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                    Generando insight personalizado...
+          <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
+            <Stack direction="row" spacing={2} alignItems="flex-start">
+              <Avatar
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  width: 56,
+                  height: 56,
+                }}
+              >
+                <AutoAwesome sx={{ fontSize: 32 }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                  <Typography variant="h4" sx={{ color: 'white', fontWeight: 600 }}>
+                    ¿Qué tiene SustentIA para decirte?
                   </Typography>
-                </Stack>
-              ) : sustentiaInsight ? (
-                <Box>
-                  <Typography variant="body1" sx={{ color: 'white', lineHeight: 1.8, mb: 2 }}>
-                    {sustentiaInsight.insight}
-                  </Typography>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Chip
-                      size="small"
-                      label={`Generado hace ${Math.floor((new Date() - new Date(sustentiaInsight.generated_at)) / 60000)} min`}
-                      sx={{
-                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  <Tooltip title="Generar nuevos insights">
+                    <IconButton
+                      onClick={handleRefreshInsights}
+                      disabled={insightLoading}
+                      sx={{ 
                         color: 'white',
-                        border: 'none'
+                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' }
                       }}
-                    />
-                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                      • Se renueva cada hora
+                    >
+                      {insightLoading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : <Refresh />}
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+                
+                {insightLoading && sustentiaInsights.length === 0 ? (
+                  <Stack spacing={1}>
+                    <LinearProgress sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', '& .MuiLinearProgress-bar': { bgcolor: 'white' } }} />
+                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                      Generando insights personalizados...
                     </Typography>
                   </Stack>
-                </Box>
-              ) : (
-                <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                  Haz clic en el botón de actualizar para obtener un insight personalizado
-                </Typography>
-              )}
-            </Box>
+                ) : sustentiaInsights.length > 0 ? (
+                  <Box>
+                    <Typography variant="body1" sx={{ color: 'white', lineHeight: 1.8, mb: 2, minHeight: '3.6em' }}>
+                      {sustentiaInsights[activeInsightStep]?.insight}
+                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+                      <Chip
+                        size="small"
+                        label={`${activeInsightStep + 1} de ${sustentiaInsights.length} insights`}
+                        sx={{
+                          bgcolor: 'rgba(255, 255, 255, 0.2)',
+                          color: 'white',
+                          border: 'none'
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        • Se renuevan cada hora
+                      </Typography>
+                    </Stack>
+                    
+                    <MobileStepper
+                      variant="dots"
+                      steps={sustentiaInsights.length}
+                      position="static"
+                      activeStep={activeInsightStep}
+                      sx={{
+                        bgcolor: 'transparent',
+                        '& .MuiMobileStepper-dot': {
+                          bgcolor: 'rgba(255, 255, 255, 0.3)',
+                        },
+                        '& .MuiMobileStepper-dotActive': {
+                          bgcolor: 'white',
+                        }
+                      }}
+                      nextButton={
+                        <IconButton 
+                          size="small" 
+                          onClick={handleNextInsight}
+                          sx={{ 
+                            color: 'white',
+                            bgcolor: 'rgba(255, 255, 255, 0.2)',
+                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' }
+                          }}
+                        >
+                          <KeyboardArrowRight />
+                        </IconButton>
+                      }
+                      backButton={
+                        <IconButton 
+                          size="small" 
+                          onClick={handlePrevInsight}
+                          sx={{ 
+                            color: 'white',
+                            bgcolor: 'rgba(255, 255, 255, 0.2)',
+                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.3)' }
+                          }}
+                        >
+                          <KeyboardArrowLeft />
+                        </IconButton>
+                      }
+                    />
+                  </Box>
+                ) : (
+                  <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                    Haz clic en el botón de actualizar para obtener insights personalizados
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
           </Stack>
         </MainCard>
       </Grid>

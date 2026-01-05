@@ -98,6 +98,7 @@ export const api = {
 
   // SustentIA
   getSustentIAInsight: (force = false) => apiClient.get(`/sustentia/insight/${force ? '?force=true' : ''}`),
+  getSustentIAInsights: (force = false) => apiClient.get(`/sustentia/insights/${force ? '?force=true' : ''}`),
 
   // Compliance - Cumplimiento Normativo
   getComplianceFrameworks: () => apiClient.get('/compliance/frameworks/'),

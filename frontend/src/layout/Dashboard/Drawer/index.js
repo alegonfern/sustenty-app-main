@@ -32,7 +32,8 @@ import {
   Building2,
   Users,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  HelpCircle
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from '../../../config';
@@ -122,7 +123,8 @@ const menuGroups = [
     title: 'Sistema',
     type: 'group',
     children: [
-      { id: 'settings', text: 'Configuración', icon: <Settings size={20} />, path: '/settings', type: 'item' }
+      { id: 'settings', text: 'Configuración', icon: <Settings size={20} />, path: '/settings', type: 'item' },
+      { id: 'help', text: 'Ayuda', icon: <HelpCircle size={20} />, path: '/ayuda', type: 'item', badge: 'Soporte' }
     ]
   }
 ];

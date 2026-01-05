@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from . import views
-from .oauth_views import google_callback
+from .oauth_views import google_callback, SocialAuthenticationErrorView
 
 router = DefaultRouter()
 
@@ -45,4 +45,8 @@ urlpatterns = [
     
     # SustentIA Insights
     path('sustentia/insight/', views.get_sustentia_insight, name='sustentia_insight'),
+    path('sustentia/insights/', views.get_sustentia_insights, name='sustentia_insights'),
+    
+    # Contact / Support
+    path('contact/', views.contact_support, name='contact_support'),
 ]

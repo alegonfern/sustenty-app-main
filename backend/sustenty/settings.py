@@ -188,9 +188,13 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
 
 # Frontend URL
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Forzar uso de localhost para OAuth (desarrollo)
+USE_X_FORWARDED_HOST = False
 
 # Google OAuth2 Configuration
 GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='')
@@ -211,6 +215,14 @@ SOCIALACCOUNT_PROVIDERS = {
 # Redirigir después del login social
 LOGIN_REDIRECT_URL = '/api/v1/auth/google/callback/'
 SOCIALACCOUNT_LOGIN_ON_GET = True
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Configuración básica de sesiones para desarrollo
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = False
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:8000']
 
 # Rest Auth Configuration
 REST_AUTH = {
@@ -220,25 +232,12 @@ REST_AUTH = {
     'JWT_AUTH_HTTPONLY': False,
 }
 
-# =============================================================================
-# EMAIL CONFIGURATION (Resend)
-# =============================================================================
-# Para activar emails con Resend:
-# 1. Crea una cuenta en https://resend.com
-# 2. Obtén tu API Key desde el dashboard
-# 3. Verifica tu dominio o usa el sandbox
-# 4. Agrega RESEND_API_KEY en tu archivo .env
-# =============================================================================
-
+# Email Configuration (Resend)
 RESEND_API_KEY = config('RESEND_API_KEY', default='')
-
-# Email settings
-EMAIL_ENABLED = config('EMAIL_ENABLED', default=False, cast=bool)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Sustenty <noreply@sustenty.io>')
-DEFAULT_FROM_NAME = 'Sustenty'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Fallback a console si no hay Resend
 
-# Si Resend no está configurado, usar backend de consola (desarrollo)
+# Si hay API key de Resend, no usamos el backend de Django por defecto
+# Manejaremos el envío con Resend directamente en nuestro servicio
 if RESEND_API_KEY:
-    EMAIL_BACKEND = 'apps.api.email_backends.ResendEmailBackend'
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Aún así dejamos console como backup

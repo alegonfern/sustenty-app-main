@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Autocomplete } from '@mui/material';
+import { api } from '../../services/api';
+import { useForm } from 'react-hook-form';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, CircularProgress } from '@mui/material';
+import { toast } from 'react-toastify';
 import {
   Container,
   Typography,
@@ -43,87 +48,130 @@ const Actions = () => {
     setCurrentTab(newValue);
   };
 
-  // Planes de acción de ejemplo
-  const actions = [
-    {
-      id: 1,
-      title: 'Reducción de Emisiones - Planta Norte',
-      category: 'Ambiental',
-      priority: 'Alta',
-      status: 'En progreso',
-      progress: 65,
-      responsible: 'Operaciones',
-      startDate: '01/01/2024',
-      endDate: '31/12/2024',
-      budget: '€150,000',
-      team: 4
-    },
-    {
-      id: 2,
-      title: 'Programa de Capacitación en Diversidad',
-      category: 'Social',
-      priority: 'Media',
-      status: 'Planificado',
-      progress: 30,
-      responsible: 'RRHH',
-      startDate: '15/02/2024',
-      endDate: '30/06/2024',
-      budget: '€45,000',
-      team: 2
-    },
-    {
-      id: 3,
-      title: 'Implementación Código de Ética',
-      category: 'Gobernanza',
-      priority: 'Alta',
-      status: 'En progreso',
-      progress: 85,
-      responsible: 'Legal',
-      startDate: '01/01/2024',
-      endDate: '31/03/2024',
-      budget: '€25,000',
-      team: 3
-    },
-    {
-      id: 4,
-      title: 'Instalación Paneles Solares',
-      category: 'Ambiental',
-      priority: 'Alta',
-      status: 'Completado',
-      progress: 100,
-      responsible: 'Infraestructura',
-      startDate: '01/09/2023',
-      endDate: '31/12/2023',
-      budget: '€300,000',
-      team: 6
-    },
-    {
-      id: 5,
-      title: 'Programa Salud Mental Empleados',
-      category: 'Social',
-      priority: 'Media',
-      status: 'En progreso',
-      progress: 50,
-      responsible: 'RRHH',
-      startDate: '01/03/2024',
-      endDate: '31/12/2024',
-      budget: '€35,000',
-      team: 2
-    },
-    {
-      id: 6,
-      title: 'Auditoría Cumplimiento GDPR',
-      category: 'Gobernanza',
-      priority: 'Alta',
-      status: 'Pausado',
-      progress: 40,
-      responsible: 'IT Security',
-      startDate: '01/02/2024',
-      endDate: '30/06/2024',
-      budget: '€60,000',
-      team: 4
+  // Estado real de acciones
+  const [actions, setActions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editAction, setEditAction] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [selectedOrg, setSelectedOrg] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm();
+
+  // Cargar acciones reales
+  useEffect(() => {
+    fetchActions();
+    fetchOrganizations();
+    fetchCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    if (selectedOrg) {
+      fetchTeamMembers(selectedOrg.id);
+    } else {
+      setTeamMembers([]);
     }
-  ];
+  }, [selectedOrg]);
+
+  // Cargar organizaciones
+  const fetchOrganizations = async () => {
+    try {
+      const res = await api.getOrganizations();
+      setOrganizations(res.data);
+      if (res.data.length > 0) setSelectedOrg(res.data[0]);
+    } catch (e) {
+      setOrganizations([]);
+    }
+  };
+
+  // Cargar usuario actual (Admin)
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await api.getCurrentUser();
+      setCurrentUser(res.data);
+    } catch (e) {
+      setCurrentUser(null);
+    }
+  };
+
+  // Cargar miembros de equipo por organización
+  const fetchTeamMembers = async (orgId) => {
+    try {
+      const res = await api.get(`/team/members/by_organization/?organization_id=${orgId}`);
+      setTeamMembers(res.data);
+    } catch (e) {
+      setTeamMembers([]);
+    }
+  };
+
+  const fetchActions = async () => {
+    setLoading(true);
+    try {
+      const res = await api.getESGActions();
+      // Asegura que siempre sea array
+      let data = res.data;
+      if (!Array.isArray(data)) {
+        if (data && typeof data === 'object' && Array.isArray(data.results)) {
+          data = data.results;
+        } else {
+          data = [];
+        }
+      }
+      setActions(data);
+    } catch (e) {
+      setActions([]);
+      toast.error('Error cargando acciones');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Abrir modal para nueva acción
+  const handleOpenDialog = () => {
+    setEditAction(null);
+    reset();
+    setValue('responsible', null);
+    setValue('team_members', []);
+    setSelectedOrg(organizations[0] || null);
+    setOpenDialog(true);
+  };
+
+  // Abrir modal para editar acción
+  const handleEditAction = (action) => {
+    setEditAction(action);
+    reset({ ...action });
+    setValue('responsible', action.responsible || null);
+    setValue('team_members', action.team_members || []);
+    // Buscar la organización de la acción
+    const org = organizations.find(o => o.id === action.organization) || organizations[0] || null;
+    setSelectedOrg(org);
+    setOpenDialog(true);
+  };
+
+  // Guardar acción (crear o editar)
+  const onSubmit = async (data) => {
+    // Adaptar datos para backend: responsable = id, team_members = [ids]
+    const payload = {
+      ...data,
+      responsible: data.responsible ? data.responsible.id : null,
+      team_members: (data.team_members || []).map(u => u.id),
+    };
+    try {
+      if (editAction) {
+        await api.patch(`/esg/actions/${editAction.id}/`, payload);
+        toast.success('Acción actualizada');
+      } else {
+        await api.post('/esg/actions/', payload);
+        toast.success('Acción creada');
+      }
+      setOpenDialog(false);
+      fetchActions();
+    } catch (e) {
+      toast.error('Error guardando acción');
+    }
+  };
 
   const getStatusInfo = (status) => {
     switch (status) {
@@ -158,22 +206,23 @@ const Actions = () => {
     }
   };
 
+  // Adaptar categorías reales
   const filterActionsByTab = () => {
     switch (currentTab) {
       case 0: return actions;
-      case 1: return actions.filter(a => a.category === 'Ambiental');
-      case 2: return actions.filter(a => a.category === 'Social');
-      case 3: return actions.filter(a => a.category === 'Gobernanza');
+      case 1: return actions.filter(a => a.category_detail?.name === 'Ambiental');
+      case 2: return actions.filter(a => a.category_detail?.name === 'Social');
+      case 3: return actions.filter(a => a.category_detail?.name === 'Gobernanza');
       default: return actions;
     }
   };
 
-  // Estadísticas de acciones
+  // Estadísticas de acciones (usando estados reales)
   const stats = {
     total: actions.length,
-    completed: actions.filter(a => a.status === 'Completado').length,
-    inProgress: actions.filter(a => a.status === 'En progreso').length,
-    planned: actions.filter(a => a.status === 'Planificado').length
+    completed: actions.filter(a => a.status === 'completed').length,
+    inProgress: actions.filter(a => a.status === 'in_progress').length,
+    planned: actions.filter(a => a.status === 'planned').length
   };
 
   return (
@@ -191,7 +240,7 @@ const Actions = () => {
               Gestión y seguimiento de iniciativas de sostenibilidad
             </Typography>
           </Box>
-          <Button variant="contained" startIcon={<AddIcon />}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenDialog}>
             Nueva Acción
           </Button>
         </Stack>
@@ -267,6 +316,9 @@ const Actions = () => {
 
       {/* Tabla de acciones */}
       <Paper>
+        {loading ? (
+          <Stack alignItems="center" py={6}><CircularProgress /></Stack>
+        ) : (
         <TableContainer>
           <Table>
             <TableHead>
@@ -294,8 +346,8 @@ const Actions = () => {
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        label={action.category} 
-                        color={getCategoryColor(action.category)} 
+                        label={action.category_detail?.name || '-'} 
+                        color={getCategoryColor(action.category_detail?.name)} 
                         size="small"
                         variant="outlined"
                       />
@@ -333,21 +385,21 @@ const Actions = () => {
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">
                         <Typography variant="body2">
-                          {action.responsible}
+                          {action.responsible_detail?.first_name || action.responsible_detail?.username || '-'}
                         </Typography>
                         <AvatarGroup max={3} sx={{ '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.75rem' } }}>
-                          {[...Array(action.team)].map((_, i) => (
-                            <Avatar key={i}>{i + 1}</Avatar>
+                          {(action.team_members_detail || []).map((member, i) => (
+                            <Avatar key={i}>{member.first_name?.[0] || member.username?.[0] || '?'}</Avatar>
                           ))}
                         </AvatarGroup>
                       </Stack>
                     </TableCell>
                     <TableCell>
                       <Typography variant="caption" display="block">
-                        Inicio: {action.startDate}
+                        Inicio: {action.start_date}
                       </Typography>
                       <Typography variant="caption" display="block">
-                        Fin: {action.endDate}
+                        Fin: {action.end_date}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -359,7 +411,7 @@ const Actions = () => {
                       <IconButton size="small" color="primary">
                         <ViewIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" color="primary">
+                      <IconButton size="small" color="primary" onClick={() => handleEditAction(action)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </TableCell>
@@ -369,7 +421,77 @@ const Actions = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        )}
       </Paper>
+
+      {/* Modal para crear/editar acción */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{editAction ? 'Editar Acción' : 'Nueva Acción'}</DialogTitle>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogContent>
+            <Stack spacing={2}>
+              <TextField label="Título" {...register('title', { required: true })} fullWidth />
+              <TextField label="Descripción" {...register('description')} fullWidth multiline rows={2} />
+              <TextField
+                label="Organización"
+                select
+                value={selectedOrg ? selectedOrg.id : ''}
+                onChange={e => {
+                  const org = organizations.find(o => o.id === Number(e.target.value));
+                  setSelectedOrg(org);
+                  setValue('organization', org ? org.id : null);
+                }}
+                fullWidth
+              >
+                {organizations.map(org => (
+                  <MenuItem key={org.id} value={org.id}>{org.nombre || org.name}</MenuItem>
+                ))}
+              </TextField>
+              <TextField label="Prioridad" select {...register('priority')} fullWidth>
+                <MenuItem value="low">Baja</MenuItem>
+                <MenuItem value="medium">Media</MenuItem>
+                <MenuItem value="high">Alta</MenuItem>
+                <MenuItem value="critical">Crítica</MenuItem>
+              </TextField>
+              <TextField label="Estado" select {...register('status')} fullWidth>
+                <MenuItem value="planned">Planificado</MenuItem>
+                <MenuItem value="in_progress">En Progreso</MenuItem>
+                <MenuItem value="paused">Pausado</MenuItem>
+                <MenuItem value="completed">Completado</MenuItem>
+                <MenuItem value="cancelled">Cancelado</MenuItem>
+              </TextField>
+              <Autocomplete
+                options={[
+                  ...(currentUser ? [{ ...currentUser, _role: 'Admin' }] : []),
+                  ...teamMembers.map(m => ({ ...m, _role: 'Miembro' }))
+                ]}
+                getOptionLabel={u => u._role === 'Admin' ? `${u.first_name} ${u.last_name} (Admin)` : `${u.name || u.email || u.username} (Miembro)`}
+                value={watch('responsible') || null}
+                onChange={(_, value) => setValue('responsible', value)}
+                renderInput={(params) => <TextField {...params} label="Responsable" fullWidth />}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+              />
+              <Autocomplete
+                multiple
+                options={teamMembers}
+                getOptionLabel={u => u.name || u.email || u.username}
+                value={watch('team_members') || []}
+                onChange={(_, value) => setValue('team_members', value)}
+                renderInput={(params) => <TextField {...params} label="Miembros del Equipo" fullWidth />}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+              />
+              <TextField label="Progreso (%)" type="number" {...register('progress')} fullWidth />
+              <TextField label="Fecha de Inicio" type="date" {...register('start_date')} fullWidth InputLabelProps={{ shrink: true }} />
+              <TextField label="Fecha de Fin" type="date" {...register('end_date')} fullWidth InputLabelProps={{ shrink: true }} />
+              <TextField label="Presupuesto" type="number" {...register('budget')} fullWidth />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
+            <Button type="submit" variant="contained" disabled={isSubmitting}>{isSubmitting ? 'Guardando...' : 'Guardar'}</Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </Container>
   );
 };

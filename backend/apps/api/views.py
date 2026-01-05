@@ -245,8 +245,6 @@ def password_reset_request(request):
     """
     Solicita un restablecimiento de contraseña enviando un email con token
     """
-    from apps.api.email_service import EmailService
-    
     email = request.data.get('email')
     
     if not email:
@@ -262,12 +260,21 @@ def password_reset_request(request):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         
-        # Crear enlace de reset
+        # Crear enlace de reset (en producción usar el dominio real)
         frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
         reset_link = f"{frontend_url}/reset-password?token={uid}-{token}"
         
-        # Enviar email usando el servicio de email
-        EmailService.send_password_reset_email(user, reset_link)
+        # Usar el servicio de email con Resend
+        from .email_service import email_service
+        
+        result = email_service.send_password_reset(user, reset_link)
+        
+        # En desarrollo, también imprimir en consola
+        if not result.get('success'):
+            print(f"\n{'='*80}")
+            print(f"PASSWORD RESET LINK FOR {user.email}:")
+            print(f"{reset_link}")
+            print(f"{'='*80}\n")
         
         return Response({
             'detail': 'Si existe una cuenta con este email, recibirás instrucciones para recuperar tu contraseña.'
@@ -660,6 +667,178 @@ No uses emojis. Sé inspirador."""
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_sustentia_insights(request):
+    """
+    Genera 5 insights personalizados de SustentIA basados en los datos del usuario
+    Se cachean por 1 hora, a menos que se pase ?force=true
+    """
+    import os
+    from groq import Groq
+    from django.core.cache import cache
+    from apps.esg.models import ESGDataCollection, ESGGoal, ESGAction
+    from datetime import datetime, timedelta
+    
+    # Verificar si se debe forzar regeneración
+    force_refresh = request.GET.get('force', 'false').lower() == 'true'
+    
+    # Verificar si hay insights en caché (solo si no es forzado)
+    cache_key = f'sustentia_insights_{request.user.id}'
+    if not force_refresh:
+        cached_insights = cache.get(cache_key)
+        if cached_insights:
+            return Response(cached_insights)
+    
+    try:
+        # Recopilar datos del usuario
+        organizations = Organization.objects.filter(user=request.user)
+        
+        # Estadísticas ESG
+        total_emissions = ESGDataCollection.objects.filter(
+            organization__in=organizations
+        ).count()
+        
+        pending_goals = ESGGoal.objects.filter(
+            organization__in=organizations
+        ).exclude(status__in=['achieved', 'cancelled']).count()
+        
+        pending_actions = ESGAction.objects.filter(
+            organization__in=organizations
+        ).exclude(status='completed').count()
+        
+        # Generar 5 insights con IA
+        api_key = os.getenv('GROQ_API_KEY', '')
+        insights_list = []
+        
+        if api_key and organizations.count() > 0:
+            client = Groq(api_key=api_key)
+            
+            # 5 tipos diferentes de insights
+            insight_prompts = [
+                {
+                    "type": "bienvenida",
+                    "prompt": f"""Eres SustentIA. El usuario tiene {organizations.count()} organización(es) y {total_emissions} registros ESG.
+
+Genera un mensaje de bienvenida motivacional corto (máx 80 palabras) que:
+1. Le dé una bienvenida amigable
+2. Mencione brevemente una capacidad clave de la plataforma
+3. Sea inspirador y profesional
+
+No uses emojis. Responde SOLO el mensaje, sin introducción."""
+                },
+                {
+                    "type": "datos",
+                    "prompt": f"""Eres SustentIA. El usuario tiene {total_emissions} registros de datos ESG.
+
+Genera un mensaje corto (máx 80 palabras) que:
+1. Reconozca su esfuerzo en registrar datos
+2. Le sugiera una acción específica para mejorar la calidad de datos
+3. Mencione un beneficio de tener datos precisos
+
+No uses emojis. Responde SOLO el mensaje."""
+                },
+                {
+                    "type": "acciones",
+                    "prompt": f"""Eres SustentIA. El usuario tiene {pending_actions} acciones ESG pendientes.
+
+Genera un mensaje motivador corto (máx 80 palabras) que:
+1. Mencione las acciones de forma positiva
+2. Explique brevemente el impacto de completarlas
+3. Le anime a priorizarlas
+
+No uses emojis. Responde SOLO el mensaje."""
+                },
+                {
+                    "type": "metas",
+                    "prompt": f"""Eres SustentIA. El usuario tiene {pending_goals} metas ESG activas.
+
+Genera un mensaje inspirador corto (máx 80 palabras) que:
+1. Reconozca el valor de establecer metas
+2. Le sugiera revisar el progreso
+3. Sea alentador
+
+No uses emojis. Responde SOLO el mensaje."""
+                },
+                {
+                    "type": "impacto",
+                    "prompt": f"""Eres SustentIA. Genera un mensaje educativo corto (máx 80 palabras) que:
+1. Comparta un dato interesante sobre sostenibilidad o ESG
+2. Lo conecte con la importancia de medir el impacto
+3. Sea inspirador
+
+No uses emojis. Responde SOLO el mensaje."""
+                }
+            ]
+            
+            # Generar cada insight
+            for prompt_data in insight_prompts:
+                try:
+                    chat_completion = client.chat.completions.create(
+                        messages=[{
+                            "role": "user",
+                            "content": prompt_data["prompt"]
+                        }],
+                        model="llama-3.1-8b-instant",
+                        temperature=0.8,
+                        max_tokens=150
+                    )
+                    
+                    insight_text = chat_completion.choices[0].message.content.strip()
+                    insights_list.append({
+                        'insight': insight_text,
+                        'type': prompt_data['type'],
+                        'generated_at': datetime.now().isoformat()
+                    })
+                except Exception as e:
+                    print(f"Error generando insight {prompt_data['type']}: {e}")
+                    # Continuar con el siguiente
+                    continue
+        
+        # Si no se generaron insights con IA o no hay API key, usar mensajes predeterminados
+        if len(insights_list) < 5:
+            default_insights = [
+                {
+                    'insight': '¡Bienvenido a Sustenty! Esta plataforma te ayuda a medir, gestionar y reducir tu impacto ambiental. Comienza explorando las diferentes secciones para registrar tus datos ESG y establecer metas de sostenibilidad.',
+                    'type': 'bienvenida',
+                    'generated_at': datetime.now().isoformat()
+                },
+                {
+                    'insight': 'Registrar tus datos de emisiones regularmente es fundamental para un seguimiento preciso. Te recomendamos establecer un calendario de recopilación de datos y asignar responsables para cada métrica clave.',
+                    'type': 'datos',
+                    'generated_at': datetime.now().isoformat()
+                },
+                {
+                    'insight': f'Tienes {pending_actions if pending_actions > 0 else "la oportunidad de crear"} acciones de sostenibilidad {"pendientes" if pending_actions > 0 else ""}. Completar estas acciones puede generar un impacto significativo en la reducción de tu huella de carbono. Cada pequeño paso cuenta hacia un futuro más sostenible.',
+                    'type': 'acciones',
+                    'generated_at': datetime.now().isoformat()
+                },
+                {
+                    'insight': 'Establecer metas ESG claras y medibles es el primer paso hacia la sostenibilidad empresarial. Revisa regularmente tu progreso en la sección de Analytics para identificar oportunidades de mejora y celebrar tus logros.',
+                    'type': 'metas',
+                    'generated_at': datetime.now().isoformat()
+                },
+                {
+                    'insight': 'Las empresas que miden y gestionan activamente su impacto ESG tienen un 23% más de probabilidad de reducir sus emisiones de CO₂. La transparencia y el seguimiento constante son clave para alcanzar objetivos de sostenibilidad.',
+                    'type': 'impacto',
+                    'generated_at': datetime.now().isoformat()
+                }
+            ]
+            
+            insights_list = default_insights[:5]
+        
+        # Cachear por 1 hora (3600 segundos)
+        cache.set(cache_key, insights_list, 3600)
+        
+        return Response(insights_list)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Error al generar insights',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 # =============================================================================
 # CONFIGURACIÓN DE USUARIO (SETTINGS)
 # =============================================================================
@@ -926,3 +1105,137 @@ def billing_history(request):
             'brand': 'Visa'
         }
     })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def contact_support(request):
+    """
+    Endpoint para el formulario de contacto/ayuda
+    Envía un email al equipo de soporte con el mensaje del usuario
+    """
+    from .email_service import email_service
+    from django.conf import settings
+    
+    name = request.data.get('name')
+    email = request.data.get('email')
+    subject = request.data.get('subject')
+    message = request.data.get('message')
+    
+    # Validar campos requeridos
+    if not all([name, email, subject, message]):
+        return Response(
+            {'error': 'Todos los campos son requeridos'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Preparar email para el equipo de soporte
+    support_email = settings.config('SUPPORT_EMAIL', default='soporte@sustenty.io')
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: #80cfc5; color: white; padding: 20px; border-radius: 8px 8px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }}
+            .info-box {{ background: white; padding: 15px; margin: 15px 0; border-left: 4px solid #80cfc5; }}
+            .message-box {{ background: white; padding: 20px; margin: 20px 0; border-radius: 6px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>📧 Nuevo Mensaje de Contacto</h2>
+            </div>
+            
+            <div class="content">
+                <div class="info-box">
+                    <p><strong>Nombre:</strong> {name}</p>
+                    <p><strong>Email:</strong> {email}</p>
+                    <p><strong>Asunto:</strong> {subject}</p>
+                </div>
+                
+                <div class="message-box">
+                    <h3>Mensaje:</h3>
+                    <p>{message}</p>
+                </div>
+                
+                <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                    💡 Responder a: <a href="mailto:{email}">{email}</a>
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Enviar email al equipo de soporte
+    try:
+        result = email_service.send_email(
+            to_email=support_email,
+            subject=f"[Contacto] {subject}",
+            html_content=html_content,
+            text_content=f"Nuevo mensaje de {name} ({email})\n\nAsunto: {subject}\n\nMensaje:\n{message}"
+        )
+        
+        # También enviar confirmación al usuario
+        confirmation_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: #80cfc5; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>✅ Mensaje Recibido</h1>
+                </div>
+                
+                <div class="content">
+                    <p>Hola {name},</p>
+                    <p>Hemos recibido tu mensaje y te responderemos lo antes posible (generalmente en menos de 24 horas).</p>
+                    <p><strong>Tu mensaje:</strong></p>
+                    <p style="background: white; padding: 15px; border-left: 4px solid #80cfc5;">
+                        {message[:200]}{'...' if len(message) > 200 else ''}
+                    </p>
+                    <p>Mientras tanto, puedes:</p>
+                    <ul>
+                        <li>Revisar nuestro <a href="{settings.FRONTEND_URL}/ayuda">Centro de Ayuda</a></li>
+                        <li>Contactarnos por WhatsApp al +56 9 1234 5678</li>
+                        <li>Explorar nuestra <a href="{settings.FRONTEND_URL}/api/docs">documentación</a></li>
+                    </ul>
+                    <p>¡Gracias por ser parte de Sustenty! 🌱</p>
+                    <p>El equipo de Sustenty</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        email_service.send_email(
+            to_email=email,
+            subject="Hemos recibido tu mensaje - Sustenty",
+            html_content=confirmation_html
+        )
+        
+        return Response({
+            'message': 'Mensaje enviado correctamente. Te responderemos pronto.',
+            'success': True
+        })
+        
+    except Exception as e:
+        logger.error(f"Error enviando mensaje de contacto: {e}")
+        return Response({
+            'message': 'Mensaje recibido. Te contactaremos pronto.',
+            'success': True  # Siempre retornar success para el usuario
+        })

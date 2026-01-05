@@ -260,7 +260,7 @@ export default function Header({ open, handleDrawerToggle }) {
                   <Settings size={16} style={{ marginRight: 16 }} />
                   Configuración
                 </MenuItem>
-                <MenuItem onClick={() => navigate('/help')}>
+                <MenuItem onClick={() => navigate('/ayuda')}>
                   <HelpCircle size={16} style={{ marginRight: 16 }} />
                   Ayuda y Soporte
                 </MenuItem>
@@ -380,7 +380,7 @@ export default function Header({ open, handleDrawerToggle }) {
                   <Settings size={16} style={{ marginRight: 16 }} />
                   Configuración
                 </MenuItem>
-                <MenuItem onClick={() => navigate('/help')}>
+                <MenuItem onClick={() => navigate('/ayuda')}>
                   <HelpCircle size={16} style={{ marginRight: 16 }} />
                   Ayuda y Soporte
                 </MenuItem>
