@@ -26,6 +26,164 @@ def health_check(request):
     })
 
 
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    """
+    GET: Retorna la información del usuario autenticado
+    PATCH: Actualiza la información del usuario
+    """
+    from allauth.socialaccount.models import SocialAccount
+    from .models import UserProfile
+    
+    user = request.user
+    
+    # Asegurar que existe el perfil
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    
+    if request.method == 'PATCH':
+        # Campos del usuario permitidos para actualizar
+        user_fields = ['first_name', 'last_name', 'email']
+        for field in user_fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        user.save()
+        
+        # Campos del perfil
+        profile_fields = ['phone', 'position', 'department']
+        for field in profile_fields:
+            if field in request.data:
+                setattr(profile, field, request.data[field])
+        profile.save()
+    
+    # Obtener foto de perfil (prioridad: avatar subido > Google > None)
+    profile_picture = None
+    
+    # Primero verificar si tiene avatar subido
+    if profile.avatar:
+        profile_picture = request.build_absolute_uri(profile.avatar.url)
+    else:
+        # Intentar obtener de Google
+        try:
+            social_account = SocialAccount.objects.filter(user=user, provider='google').first()
+            if social_account and social_account.extra_data:
+                profile_picture = social_account.extra_data.get('picture')
+        except:
+            pass
+    
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'full_name': user.get_full_name() or user.username,
+        'profile_picture': profile_picture,
+        'phone': profile.phone,
+        'position': profile.position,
+        'department': profile.department,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_avatar(request):
+    """
+    Sube una imagen de perfil para el usuario autenticado
+    """
+    from .models import UserProfile
+    
+    if 'avatar' not in request.FILES:
+        return Response(
+            {'detail': 'No se proporcionó ninguna imagen'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    avatar = request.FILES['avatar']
+    
+    # Validar tipo de archivo
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if avatar.content_type not in allowed_types:
+        return Response(
+            {'detail': 'Tipo de archivo no permitido. Use JPG, PNG, GIF o WebP'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Validar tamaño (max 5MB)
+    if avatar.size > 5 * 1024 * 1024:
+        return Response(
+            {'detail': 'La imagen es demasiado grande. Máximo 5MB'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Eliminar avatar anterior si existe
+    if profile.avatar:
+        profile.avatar.delete(save=False)
+    
+    profile.avatar = avatar
+    profile.save()
+    
+    return Response({
+        'detail': 'Imagen de perfil actualizada correctamente',
+        'avatar_url': request.build_absolute_uri(profile.avatar.url)
+    })
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_avatar(request):
+    """
+    Elimina la imagen de perfil del usuario
+    """
+    from .models import UserProfile
+    
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if profile.avatar:
+        profile.avatar.delete(save=False)
+        profile.avatar = None
+        profile.save()
+        return Response({'detail': 'Imagen de perfil eliminada'})
+    
+    return Response({'detail': 'No hay imagen de perfil para eliminar'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """
+    Cambia la contraseña del usuario autenticado
+    """
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+    
+    if not old_password or not new_password:
+        return Response(
+            {'detail': 'Se requiere la contraseña actual y la nueva contraseña'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not user.check_password(old_password):
+        return Response(
+            {'old_password': ['La contraseña actual es incorrecta']},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if len(new_password) < 8:
+        return Response(
+            {'detail': 'La nueva contraseña debe tener al menos 8 caracteres'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    user.set_password(new_password)
+    user.save()
+    
+    return Response({'detail': 'Contraseña cambiada correctamente'})
+
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def organization_list_create(request):
@@ -87,6 +245,8 @@ def password_reset_request(request):
     """
     Solicita un restablecimiento de contraseña enviando un email con token
     """
+    from apps.api.email_service import EmailService
+    
     email = request.data.get('email')
     
     if not email:
@@ -102,47 +262,12 @@ def password_reset_request(request):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         
-        # Crear enlace de reset (en producción usar el dominio real)
+        # Crear enlace de reset
         frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
         reset_link = f"{frontend_url}/reset-password?token={uid}-{token}"
         
-        # Enviar email
-        subject = 'Recuperación de contraseña - Sustenty'
-        message = f"""
-Hola {user.username},
-
-Has solicitado restablecer tu contraseña en Sustenty.
-
-Haz clic en el siguiente enlace para crear una nueva contraseña:
-{reset_link}
-
-Este enlace expirará en 24 horas.
-
-Si no solicitaste este cambio, puedes ignorar este correo.
-
-Saludos,
-El equipo de Sustenty
-        """
-        
-        # En desarrollo, solo imprimimos el enlace
-        print(f"\n{'='*80}")
-        print(f"PASSWORD RESET LINK FOR {user.email}:")
-        print(f"{reset_link}")
-        print(f"{'='*80}\n")
-        
-        # Intentar enviar email (en producción configurar SMTP)
-        try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"Error sending email: {e}")
-            # En desarrollo, continuamos aunque falle el envío
-            pass
+        # Enviar email usando el servicio de email
+        EmailService.send_password_reset_email(user, reset_link)
         
         return Response({
             'detail': 'Si existe una cuenta con este email, recibirás instrucciones para recuperar tu contraseña.'
@@ -383,3 +508,421 @@ Puedo ayudarte con:
 {f"Actualmente tienes {len(organizations)} organización(es) registrada(s)." if organizations else ""}
 
 ¿Sobre qué tema específico te gustaría que te aconseje?"""
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_sustentia_insight(request):
+    """
+    Genera un insight personalizado de SustentIA basado en los datos del usuario
+    Se cachea por 1 hora, a menos que se pase ?force=true
+    """
+    import os
+    from groq import Groq
+    from django.core.cache import cache
+    from apps.esg.models import ESGDataCollection, ESGGoal, ESGAction
+    from datetime import datetime, timedelta
+    
+    # Verificar si se debe forzar regeneración
+    force_refresh = request.GET.get('force', 'false').lower() == 'true'
+    
+    # Verificar si hay un insight en caché (solo si no es forzado)
+    cache_key = f'sustentia_insight_{request.user.id}'
+    if not force_refresh:
+        cached_insight = cache.get(cache_key)
+        if cached_insight:
+            return Response(cached_insight)
+    
+    try:
+        # Recopilar datos del usuario
+        organizations = Organization.objects.filter(user=request.user)
+        
+        # Estadísticas ESG - solo contar registros totales
+        total_emissions = ESGDataCollection.objects.filter(
+            organization__in=organizations
+        ).count()
+        
+        # Contar metas no alcanzadas (en camino, en riesgo, retrasadas)
+        pending_goals = ESGGoal.objects.filter(
+            organization__in=organizations
+        ).exclude(status__in=['achieved', 'cancelled']).count()
+        
+        # Contar acciones pendientes o en progreso
+        pending_actions = ESGAction.objects.filter(
+            organization__in=organizations
+        ).exclude(status='completed').count()
+        
+        # Construir contexto
+        context_data = {
+            'organizations_count': organizations.count(),
+            'total_emissions_records': total_emissions,
+            'pending_goals': pending_goals,
+            'pending_actions': pending_actions,
+            'has_data': total_emissions > 0,
+        }
+        
+        # Generar insight con IA
+        api_key = os.getenv('GROQ_API_KEY', '')
+        
+        if api_key and organizations.count() > 0:
+            client = Groq(api_key=api_key)
+            
+            # Determinar tipo de mensaje basado en el estado
+            if not context_data['has_data']:
+                message_type = "bienvenida"
+            elif pending_actions > 5:
+                message_type = "urgencia_acciones"
+            elif pending_goals > 3:
+                message_type = "enfoque_metas"
+            else:
+                message_type = "motivacion"
+            
+            prompts = {
+                "bienvenida": f"""Eres SustentIA. El usuario acaba de registrarse y tiene {organizations.count()} organización(es) pero aún no ha cargado datos ESG.
+
+Genera un mensaje motivacional corto (máx 100 palabras) que:
+1. Le dé la bienvenida
+2. Le explique brevemente que puede hacer en la plataforma (registrar emisiones, crear metas, ver analytics)
+3. Le sugiera empezar por la sección "Colección" para registrar sus primeros datos
+4. Sea amigable y motivador
+
+No uses emojis. Sé directo y profesional.""",
+
+                "urgencia_acciones": f"""Eres SustentIA. El usuario tiene {pending_actions} acciones pendientes de completar.
+
+Genera un mensaje corto (máx 100 palabras) que:
+1. Le recuerde amablemente las acciones pendientes
+2. Le motive a completarlas mencionando el impacto positivo
+3. Le sugiera priorizar las más importantes
+4. Sea alentador, no regañón
+
+No uses emojis.""",
+
+                "enfoque_metas": f"""Eres SustentIA. El usuario tiene {pending_goals} metas ESG pendientes y {total_emissions} registros de emisiones.
+
+Genera un mensaje corto (máx 100 palabras) que:
+1. Reconozca su esfuerzo en registrar datos
+2. Le recuerde sus metas pendientes
+3. Le sugiera revisar el progreso en la sección Analytics
+4. Sea motivador
+
+No uses emojis.""",
+
+                "motivacion": f"""Eres SustentIA. El usuario tiene {total_emissions} registros, {pending_goals} metas y {pending_actions} acciones pendientes.
+
+Genera un mensaje inspirador corto (máx 100 palabras) que:
+1. Celebre su progreso
+2. Le sugiera una acción específica (crear un reporte, revisar tendencias, o completar acciones)
+3. Le recuerde el impacto positivo de su trabajo
+4. Incluya un dato interesante sobre sostenibilidad
+
+No uses emojis. Sé inspirador."""
+            }
+            
+            chat_completion = client.chat.completions.create(
+                messages=[{
+                    "role": "user",
+                    "content": prompts[message_type]
+                }],
+                model="llama-3.1-8b-instant",
+                temperature=0.7,
+                max_tokens=200
+            )
+            
+            insight_text = chat_completion.choices[0].message.content
+        else:
+            # Mensajes predeterminados sin IA
+            if not context_data['has_data']:
+                insight_text = "¡Bienvenido a Sustenty! Comienza registrando tus primeros datos de emisiones en la sección 'Colección'. Esto te permitirá visualizar tu impacto ambiental y establecer metas de reducción. Cada dato que registres es un paso hacia la sostenibilidad."
+            elif pending_actions > 5:
+                insight_text = f"Tienes {pending_actions} acciones pendientes. Completar estas acciones puede tener un impacto significativo en tu huella de carbono. Te sugerimos priorizar las de mayor impacto primero. ¡Cada acción cuenta!"
+            elif pending_goals > 3:
+                insight_text = f"Has establecido {pending_goals} metas ESG. Revisa tu progreso en la sección Analytics para identificar áreas de mejora. Mantén el enfoque y verás resultados positivos pronto."
+            else:
+                insight_text = f"Excelente progreso con {total_emissions} registros. ¿Sabías que las empresas que miden su impacto ESG tienen 23% más probabilidad de reducir emisiones? Sigue así y considera generar tu primer reporte de sostenibilidad."
+        
+        # Preparar respuesta
+        response_data = {
+            'insight': insight_text,
+            'generated_at': datetime.now().isoformat(),
+            'context': context_data
+        }
+        
+        # Cachear por 1 hora (3600 segundos)
+        cache.set(cache_key, response_data, 3600)
+        
+        return Response(response_data)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Error al generar insight',
+            'detail': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# =============================================================================
+# CONFIGURACIÓN DE USUARIO (SETTINGS)
+# =============================================================================
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_settings(request):
+    """
+    GET: Retorna las configuraciones del usuario
+    PATCH: Actualiza las configuraciones del usuario
+    """
+    from .models import UserSettings
+    from .serializers import UserSettingsSerializer
+    
+    user = request.user
+    
+    # Obtener o crear configuraciones
+    settings_obj, created = UserSettings.objects.get_or_create(user=user)
+    
+    if request.method == 'GET':
+        serializer = UserSettingsSerializer(settings_obj)
+        return Response(serializer.data)
+    
+    elif request.method == 'PATCH':
+        serializer = UserSettingsSerializer(settings_obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'Configuración actualizada correctamente',
+                'settings': serializer.data
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generate_api_key(request):
+    """
+    Genera una nueva API key para el usuario
+    """
+    from .models import UserSettings
+    import secrets
+    
+    user = request.user
+    settings_obj, created = UserSettings.objects.get_or_create(user=user)
+    
+    if not settings_obj.api_enabled:
+        return Response({
+            'error': 'Debes habilitar el acceso a la API primero'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Generar nueva API key
+    new_key = f"sk_live_{secrets.token_urlsafe(32)}"
+    settings_obj.api_key = new_key
+    settings_obj.save()
+    
+    return Response({
+        'api_key': new_key,
+        'message': 'Nueva API key generada. Guárdala en un lugar seguro, no podrás verla de nuevo.'
+    })
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def user_integrations(request):
+    """
+    GET: Lista las integraciones del usuario
+    POST: Crea o actualiza una integración
+    """
+    from .models import Integration
+    from .serializers import IntegrationSerializer
+    
+    user = request.user
+    
+    # Integraciones disponibles por defecto
+    DEFAULT_INTEGRATIONS = [
+        {'provider': 'google', 'name': 'Google Workspace', 'description': 'Sincroniza documentos de Google Drive', 'icon': '🔗'},
+        {'provider': 'microsoft', 'name': 'Microsoft 365', 'description': 'Integra con SharePoint y Teams', 'icon': '📎'},
+        {'provider': 'slack', 'name': 'Slack', 'description': 'Notificaciones en canales de Slack', 'icon': '💬'},
+        {'provider': 'zapier', 'name': 'Zapier', 'description': 'Automatiza flujos de trabajo', 'icon': '⚡'},
+        {'provider': 'salesforce', 'name': 'Salesforce', 'description': 'Sincroniza datos de sostenibilidad', 'icon': '☁️'},
+    ]
+    
+    if request.method == 'GET':
+        # Obtener integraciones existentes
+        existing_integrations = {i.provider: i for i in Integration.objects.filter(user=user)}
+        
+        # Combinar con defaults
+        result = []
+        for default in DEFAULT_INTEGRATIONS:
+            if default['provider'] in existing_integrations:
+                integration = existing_integrations[default['provider']]
+                result.append({
+                    'id': integration.id,
+                    'provider': default['provider'],
+                    'name': default['name'],
+                    'description': default['description'],
+                    'icon': default['icon'],
+                    'is_connected': integration.is_connected,
+                })
+            else:
+                result.append({
+                    'id': None,
+                    'provider': default['provider'],
+                    'name': default['name'],
+                    'description': default['description'],
+                    'icon': default['icon'],
+                    'is_connected': False,
+                })
+        
+        return Response(result)
+    
+    elif request.method == 'POST':
+        provider = request.data.get('provider')
+        action = request.data.get('action', 'toggle')  # 'connect' or 'disconnect' or 'toggle'
+        
+        if not provider:
+            return Response({'error': 'Provider es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        valid_providers = [p['provider'] for p in DEFAULT_INTEGRATIONS]
+        if provider not in valid_providers:
+            return Response({'error': 'Provider inválido'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        integration, created = Integration.objects.get_or_create(
+            user=user,
+            provider=provider
+        )
+        
+        if action == 'toggle':
+            integration.is_connected = not integration.is_connected
+        elif action == 'connect':
+            integration.is_connected = True
+        elif action == 'disconnect':
+            integration.is_connected = False
+        
+        integration.save()
+        
+        # Obtener el nombre para el mensaje
+        provider_name = next((p['name'] for p in DEFAULT_INTEGRATIONS if p['provider'] == provider), provider)
+        
+        return Response({
+            'message': f"{'Conectado a' if integration.is_connected else 'Desconectado de'} {provider_name}",
+            'integration': {
+                'provider': integration.provider,
+                'is_connected': integration.is_connected
+            }
+        })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def export_user_data(request):
+    """
+    Inicia la exportación de todos los datos del usuario
+    """
+    from django.core.mail import send_mail
+    import json
+    from datetime import datetime
+    
+    user = request.user
+    export_format = request.data.get('format', 'json')  # 'json' or 'csv'
+    
+    # En producción, esto debería ser una tarea asíncrona (Celery)
+    # Por ahora, simulamos el proceso
+    
+    # Recopilar todos los datos del usuario
+    export_data = {
+        'user': {
+            'email': user.email,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'date_joined': str(user.date_joined),
+        },
+        'organizations': list(user.organizations.values()),
+        'exported_at': datetime.now().isoformat(),
+        'format': export_format
+    }
+    
+    # TODO: Agregar más datos (emisiones, documentos, etc.)
+    # TODO: Implementar exportación real con tarea asíncrona
+    
+    return Response({
+        'message': 'Exportación iniciada. Recibirás un email con el enlace de descarga en unos minutos.',
+        'format': export_format,
+        'estimated_time': '5-10 minutos'
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def usage_stats(request):
+    """
+    Retorna estadísticas de uso del plan actual
+    """
+    from apps.esg.models import Emission
+    from apps.compliance.models import Document
+    
+    user = request.user
+    
+    # Obtener organización actual
+    org_id = request.query_params.get('organization')
+    
+    # Calcular estadísticas de uso
+    try:
+        documents_count = Document.objects.filter(user=user).count()
+    except:
+        documents_count = 0
+    
+    try:
+        emissions_count = Emission.objects.filter(organization_id=org_id).count() if org_id else 0
+    except:
+        emissions_count = 0
+    
+    # Límites del plan (estos vendrían de una tabla de planes en producción)
+    plan_limits = {
+        'starter': {'documents': 50, 'storage': 1, 'api_calls': 1000, 'users': 5},
+        'professional': {'documents': 100, 'storage': 5, 'api_calls': 5000, 'users': 10},
+        'enterprise': {'documents': float('inf'), 'storage': float('inf'), 'api_calls': float('inf'), 'users': float('inf')}
+    }
+    
+    current_plan = 'professional'  # TODO: Obtener del modelo de suscripción
+    limits = plan_limits.get(current_plan, plan_limits['professional'])
+    
+    return Response({
+        'plan': current_plan,
+        'usage': {
+            'documents': documents_count,
+            'documents_limit': limits['documents'],
+            'storage': 2.3,  # GB - TODO: calcular real
+            'storage_limit': limits['storage'],
+            'api_calls': 1250,  # TODO: tracking real
+            'api_calls_limit': limits['api_calls'],
+            'users': user.organizations.first().members.count() if user.organizations.exists() and hasattr(user.organizations.first(), 'members') else 1,
+            'users_limit': limits['users']
+        }
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def billing_history(request):
+    """
+    Retorna el historial de facturación del usuario
+    """
+    # TODO: Implementar con integración de Stripe
+    # Por ahora retornamos datos de ejemplo
+    
+    invoices = [
+        {'id': 'INV-001', 'date': '01/12/2025', 'amount': '€99.00', 'status': 'Pagado', 'plan': 'Professional'},
+        {'id': 'INV-002', 'date': '01/11/2025', 'amount': '€99.00', 'status': 'Pagado', 'plan': 'Professional'},
+        {'id': 'INV-003', 'date': '01/10/2025', 'amount': '€99.00', 'status': 'Pagado', 'plan': 'Professional'},
+        {'id': 'INV-004', 'date': '01/09/2025', 'amount': '€99.00', 'status': 'Pagado', 'plan': 'Professional'},
+        {'id': 'INV-005', 'date': '01/08/2025', 'amount': '€49.00', 'status': 'Pagado', 'plan': 'Starter'},
+    ]
+    
+    return Response({
+        'invoices': invoices,
+        'total_count': len(invoices),
+        'next_billing_date': '01/01/2026',
+        'payment_method': {
+            'type': 'card',
+            'last4': '4242',
+            'brand': 'Visa'
+        }
+    })

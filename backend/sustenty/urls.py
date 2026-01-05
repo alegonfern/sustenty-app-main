@@ -7,6 +7,14 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('apps.api.urls')),
+    path('api/v1/esg/', include('apps.esg.urls')),
+    path('api/v1/team/', include('apps.team.urls')),
+    path('api/v1/compliance/', include('apps.compliance.urls')),
+    
+    # Authentication with Google OAuth2
+    path('api/v1/auth/', include('dj_rest_auth.urls')),
+    path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('accounts/', include('allauth.urls')),
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

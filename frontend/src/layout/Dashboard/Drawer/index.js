@@ -19,17 +19,21 @@ import {
   Chip
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon,
-  People,
-  Settings,
   Home,
-  Business,
-  Storage,
-  Analytics,
-  PlaylistAddCheck,
-  Upgrade,
-  ArrowForward
-} from '@mui/icons-material';
+  Database,
+  BarChart3,
+  ListChecks,
+  Settings,
+  ShieldCheck,
+  FileText,
+  LineChart,
+  AlertTriangle,
+  ClipboardList,
+  Building2,
+  Users,
+  ArrowRight,
+  Sparkles
+} from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from '../../../config';
 
@@ -78,8 +82,7 @@ const menuGroups = [
     title: 'Navegación',
     type: 'group',
     children: [
-      { id: 'dashboard', text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', type: 'item' },
-      { id: 'home', text: 'Inicio', icon: <Home />, path: '/', type: 'item' }
+      { id: 'home', text: 'Inicio', icon: <Home size={20} />, path: '/', type: 'item' }
     ]
   },
   {
@@ -87,9 +90,22 @@ const menuGroups = [
     title: 'Esg',
     type: 'group',
     children: [
-      { id: 'esg-collection', text: 'Colección', icon: <Storage />, path: '/esg/collection', type: 'item' },
-      { id: 'esg-analytics', text: 'Analítica', icon: <Analytics />, path: '/esg/analytics', type: 'item' },
-      { id: 'esg-actions', text: 'Acciones', icon: <PlaylistAddCheck />, path: '/esg/actions', type: 'item' }
+      { id: 'esg-collection', text: 'Colección', icon: <Database size={20} />, path: '/esg/collection', type: 'item' },
+      { id: 'esg-analytics', text: 'Analítica', icon: <BarChart3 size={20} />, path: '/esg/analytics', type: 'item' },
+      { id: 'esg-actions', text: 'Acciones', icon: <ListChecks size={20} />, path: '/esg/actions', type: 'item' },
+      { id: 'esg-config', text: 'Configuración', icon: <Settings size={20} />, path: '/esg/config', type: 'item' }
+    ]
+  },
+  {
+    id: 'compliance',
+    title: 'Cumplimiento',
+    type: 'group',
+    children: [
+      { id: 'compliance-dashboard', text: 'Dashboard', icon: <ShieldCheck size={20} />, path: '/compliance/dashboard', type: 'item' },
+      { id: 'compliance-documents', text: 'Documentos', icon: <FileText size={20} />, path: '/compliance/documents', type: 'item' },
+      { id: 'compliance-analyses', text: 'Análisis', icon: <LineChart size={20} />, path: '/compliance/analyses', type: 'item' },
+      { id: 'compliance-gaps', text: 'Brechas', icon: <AlertTriangle size={20} />, path: '/compliance/gaps', type: 'item' },
+      { id: 'compliance-reports', text: 'Reportes', icon: <ClipboardList size={20} />, path: '/compliance/reports', type: 'item' }
     ]
   },
   {
@@ -97,8 +113,8 @@ const menuGroups = [
     title: 'Gestión',
     type: 'group',
     children: [
-      { id: 'organizations', text: 'Organizaciones', icon: <Business />, path: '/organizations', type: 'item' },
-      { id: 'users', text: 'Usuarios', icon: <People />, path: '/users', type: 'item' }
+      { id: 'organizations', text: 'Organizaciones', icon: <Building2 size={20} />, path: '/organizations', type: 'item' },
+      { id: 'teams', text: 'Equipo', icon: <Users size={20} />, path: '/team/teams', type: 'item' }
     ]
   },
   {
@@ -106,7 +122,7 @@ const menuGroups = [
     title: 'Sistema',
     type: 'group',
     children: [
-      { id: 'settings', text: 'Configuración', icon: <Settings />, path: '/settings', type: 'item' }
+      { id: 'settings', text: 'Configuración', icon: <Settings size={20} />, path: '/settings', type: 'item' }
     ]
   }
 ];
@@ -130,13 +146,53 @@ export default function Drawer({ open, handleDrawerToggle }) {
         }}
       >
         {open ? (
-          <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
-            Sustenty
-          </Typography>
+          // Logo completo cuando está abierto
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <img 
+              src="/logo-full.svg" 
+              alt="Sustenty" 
+              style={{ height: 32 }}
+              onError={(e) => {
+                // Fallback: mostrar texto si no existe la imagen
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'block';
+              }}
+            />
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 700, 
+                color: 'primary.main',
+                display: 'none' // Se muestra solo si falla la imagen
+              }}
+            >
+              Sustenty
+            </Typography>
+          </Box>
         ) : (
-          <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
-            S
-          </Typography>
+          // Solo icono cuando está contraído
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img 
+              src="/logo-icon.svg" 
+              alt="S" 
+              style={{ height: 32, width: 32 }}
+              onError={(e) => {
+                // Fallback si no existe la imagen
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'block';
+              }}
+            />
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 700, 
+                color: 'primary.main',
+                display: 'none' // Se muestra solo si falla la imagen
+              }}
+            >
+              S
+            </Typography>
+          </Box>
         )}
       </Box>
       <Divider />
@@ -270,7 +326,7 @@ export default function Drawer({ open, handleDrawerToggle }) {
                 <Button
                   variant="contained"
                   size="small"
-                  endIcon={<ArrowForward />}
+                  endIcon={<ArrowRight size={16} />}
                   sx={{
                     bgcolor: 'white',
                     color: 'primary.main',

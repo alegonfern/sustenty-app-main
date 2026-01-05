@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Organization
+from .models import Organization, UserSettings, Integration
 import re
 
 
@@ -103,3 +103,59 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # El usuario se asigna desde la vista
         return Organization.objects.create(**validated_data)
+
+
+class UserSettingsSerializer(serializers.ModelSerializer):
+    """
+    Serializer para las configuraciones del usuario
+    """
+    class Meta:
+        model = UserSettings
+        fields = [
+            'id',
+            # Notificaciones
+            'email_notifications',
+            'push_notifications',
+            'weekly_digest',
+            'alerts_emissions',
+            'alerts_compliance',
+            'alerts_deadlines',
+            # Apariencia
+            'theme',
+            'language',
+            'date_format',
+            'timezone',
+            # Seguridad
+            'two_factor_enabled',
+            'session_timeout',
+            'ip_whitelist_enabled',
+            'ip_whitelist',
+            # API
+            'api_enabled',
+            'api_key',
+            'webhooks_enabled',
+            'webhook_url',
+            # Timestamps
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = ['id', 'api_key', 'created_at', 'updated_at']
+
+
+class IntegrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer para integraciones
+    """
+    provider_display = serializers.CharField(source='get_provider_display', read_only=True)
+    
+    class Meta:
+        model = Integration
+        fields = [
+            'id',
+            'provider',
+            'provider_display',
+            'is_connected',
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']

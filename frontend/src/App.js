@@ -3,22 +3,42 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
+import AuthCallback from './pages/AuthCallback';
 import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import Organizations from './pages/Organizations';
+import Teams from './pages/Teams';
+import TeamMembers from './pages/TeamMembers';
 import Collection from './pages/esg/Collection';
 import Analytics from './pages/esg/Analytics';
 import Actions from './pages/esg/Actions';
+import EmissionFactors from './pages/esg/EmissionFactors';
+import Scopes from './pages/esg/Scopes';
+import Periods from './pages/esg/Periods';
+import ESGConfig from './pages/esg/Config';
+// Compliance Module
+import {
+  ComplianceDashboard,
+  ComplianceDocuments,
+  ComplianceAnalyses,
+  ComplianceAnalysisDetail,
+  ComplianceGaps,
+  ComplianceReports
+} from './pages/compliance';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layout/Dashboard';
+import { AppProvider } from './context/AppContext';
 
 function App() {
   return (
-    <Routes>
+    <AppProvider>
+      <Routes>
       {/* Rutas de autenticación sin layout */}
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/register" element={<div>Register Page</div>} />
 
       {/* Rutas con DashboardLayout */}
@@ -31,15 +51,29 @@ function App() {
         }
       >
         <Route index element={<Home />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="organizations" element={<Organizations />} />
         <Route path="esg/collection" element={<Collection />} />
         <Route path="esg/analytics" element={<Analytics />} />
         <Route path="esg/actions" element={<Actions />} />
-        <Route path="users" element={<div>Users Page</div>} />
-        <Route path="settings" element={<div>Settings Page</div>} />
+        <Route path="esg/emission-factors" element={<EmissionFactors />} />
+        <Route path="esg/scopes" element={<Scopes />} />
+        <Route path="esg/periods" element={<Periods />} />
+        <Route path="esg/config" element={<ESGConfig />} />
+        {/* Compliance Routes */}
+        <Route path="compliance" element={<ComplianceDashboard />} />
+        <Route path="compliance/dashboard" element={<ComplianceDashboard />} />
+        <Route path="compliance/documents" element={<ComplianceDocuments />} />
+        <Route path="compliance/analyses" element={<ComplianceAnalyses />} />
+        <Route path="compliance/analyses/:id" element={<ComplianceAnalysisDetail />} />
+        <Route path="compliance/gaps" element={<ComplianceGaps />} />
+        <Route path="compliance/reports" element={<ComplianceReports />} />
+        <Route path="team/teams" element={<Teams />} />
+        <Route path="team/members" element={<TeamMembers />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>
+    </AppProvider>
   );
 }
 

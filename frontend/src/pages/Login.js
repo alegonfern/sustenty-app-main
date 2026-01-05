@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Box,
@@ -14,17 +14,21 @@ import {
   InputAdornment,
   IconButton,
   Link as MuiLink,
+  Tooltip,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Visibility, VisibilityOff, LightMode, DarkMode } from '@mui/icons-material';
+import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { api } from '../services/api';
 import { authService } from '../services/auth';
 import { toast } from 'react-toastify';
+import { ThemeContext } from '../context/ThemeContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { mode, toggleTheme } = useContext(ThemeContext);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   
@@ -43,8 +47,12 @@ const Login = () => {
     onSuccess: (response) => {
       const { access, refresh } = response.data;
       authService.login(access, refresh, rememberMe);
+      
+      // Disparar evento para que AppContext recargue los datos
+      window.dispatchEvent(new Event('auth-login'));
+      
       toast.success('¡Inicio de sesión exitoso!');
-      navigate('/dashboard');
+      navigate('/');
     },
     onError: (error) => {
       console.error('Login error:', error);
@@ -70,10 +78,16 @@ const Login = () => {
     event.preventDefault();
   };
 
+  const handleGoogleLogin = () => {
+    // Para OAuth no usamos /api/v1/, va directo al dominio
+    const BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace('/api/v1', '');
+    window.location.href = `${BASE_URL}/accounts/google/login/?process=login`;
+  };
+
   // Redirect if already authenticated
   React.useEffect(() => {
     if (authService.isAuthenticated()) {
-      navigate('/dashboard');
+      navigate('/');
     }
   }, [navigate]);
 
@@ -87,9 +101,31 @@ const Login = () => {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: 'background.default',
       overflow: 'auto'
     }}>
+      {/* Theme Toggle Button */}
+      <Tooltip title={mode === 'light' ? 'Modo oscuro' : 'Modo claro'}>
+        <IconButton
+          onClick={toggleTheme}
+          sx={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            zIndex: 10,
+            color: 'text.secondary',
+            bgcolor: 'background.paper',
+            boxShadow: 2,
+            '&:hover': {
+              bgcolor: 'action.hover',
+              color: 'primary.main',
+            }
+          }}
+        >
+          {mode === 'light' ? <DarkMode /> : <LightMode />}
+        </IconButton>
+      </Tooltip>
+
       {/* Background decoration */}
       <Box
         sx={{
@@ -123,7 +159,7 @@ const Login = () => {
       >
         <Box
           sx={{
-            backgroundColor: 'white',
+            backgroundColor: 'background.paper',
             borderRadius: 2,
             boxShadow: '0 2px 14px 0 rgba(0,0,0,0.1)',
             p: { xs: 2, sm: 3, md: 4, xl: 5 },
@@ -273,6 +309,38 @@ const Login = () => {
                       }}
                     >
                       {loginMutation.isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                    </Button>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ my: 2 }}>
+                      <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        O
+                      </Typography>
+                      <Box sx={{ flexGrow: 1, height: '1px', bgcolor: 'divider' }} />
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Button
+                      fullWidth
+                      size="large"
+                      variant="outlined"
+                      startIcon={<GoogleIcon />}
+                      onClick={handleGoogleLogin}
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        borderColor: 'divider',
+                        color: 'text.primary',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                        }
+                      }}
+                    >
+                      Continuar con Google
                     </Button>
                   </Grid>
                 </Grid>

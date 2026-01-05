@@ -14,7 +14,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Stack
+  Stack,
+  Alert
 } from '@mui/material';
 import {
   Business,
@@ -29,6 +30,8 @@ import {
 import { api } from '../services/api';
 import { toast } from 'react-toastify';
 import CreateOrganizationModal from '../components/CreateOrganizationModal';
+import { useApp } from '../context/AppContext';
+import InfoTooltip from '../components/InfoTooltip';
 
 const SECTOR_MAP = {
   manufactura: 'Manufactura',
@@ -50,6 +53,7 @@ const MODO_MAP = {
 
 export default function Organizations() {
   const location = useLocation();
+  const { refreshOrganizations } = useApp();
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
@@ -88,9 +92,27 @@ export default function Organizations() {
       setOpenModal(false);
       setEditingOrg(null);
       fetchOrganizations();
+      refreshOrganizations(); // Actualizar el contexto global
     } catch (error) {
       console.error('Error al guardar organización:', error);
-      toast.error('Error al guardar la organización');
+      console.error('Respuesta del servidor:', error.response?.data);
+      
+      // Mostrar errores específicos del backend
+      if (error.response?.data) {
+        const errors = error.response.data;
+        if (typeof errors === 'object') {
+          Object.keys(errors).forEach(field => {
+            const message = Array.isArray(errors[field]) 
+              ? errors[field].join(', ') 
+              : errors[field];
+            toast.error(`${field}: ${message}`);
+          });
+        } else {
+          toast.error(errors);
+        }
+      } else {
+        toast.error('Error al guardar la organización');
+      }
     }
   };
 
@@ -121,6 +143,7 @@ export default function Organizations() {
       await api.deleteOrganization(deleteDialog.id);
       toast.success('Organización eliminada exitosamente');
       setDeleteDialog({ open: false, id: null });
+      refreshOrganizations(); // Actualizar el contexto global
       fetchOrganizations();
     } catch (error) {
       console.error('Error al eliminar organización:', error);
@@ -140,9 +163,12 @@ export default function Organizations() {
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
-            Mis Organizaciones
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
+              Mis Organizaciones
+            </Typography>
+            <InfoTooltip infoKey="organization" />
+          </Stack>
           <Typography variant="body2" color="text.secondary">
             Gestiona todas tus organizaciones en un solo lugar
           </Typography>
@@ -156,6 +182,12 @@ export default function Organizations() {
           Nueva Organización
         </Button>
       </Stack>
+
+      <Alert severity="info" sx={{ mb: 3 }}>
+        🏢 <strong>¿Qué es una organización?</strong> Una organización representa tu empresa o unidad de negocio. 
+        Cada organización tiene su propia configuración ESG, equipos y métricas. Si gestionas múltiples empresas o filiales, 
+        puedes crear una organización para cada una y centralizar la gestión de sostenibilidad.
+      </Alert>
 
       {organizations.length === 0 ? (
         <Box
