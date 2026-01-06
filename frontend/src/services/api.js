@@ -130,6 +130,11 @@ export const api = {
   createComplianceReport: (data) => apiClient.post('/compliance/reports/', data),
   generateComplianceReport: (id) => apiClient.post(`/compliance/reports/${id}/generate/`),
 
+  // Notificaciones
+  getNotifications: () => apiClient.get('/notifications/'),
+  markNotificationRead: (id) => apiClient.patch(`/notifications/${id}/`, { read: true }),
+  createNotification: (data) => apiClient.post('/notifications/', data),
+
   // Generic CRUD operations
   get: (endpoint) => apiClient.get(endpoint),
   post: (endpoint, data) => apiClient.post(endpoint, data),

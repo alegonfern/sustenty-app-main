@@ -288,6 +288,9 @@ class ESGAction(models.Model):
     description = models.TextField(verbose_name=_('Descripción'))
     
     goal = models.ForeignKey(ESGGoal, on_delete=models.SET_NULL, null=True, blank=True, related_name='actions', verbose_name=_('Objetivo Asociado'))
+    metric = models.ForeignKey(ESGMetric, on_delete=models.SET_NULL, null=True, blank=True, related_name='actions', verbose_name=_('Métrica Asociada'))
+    expected_impact = models.TextField(blank=True, null=True, verbose_name=_('Enfoque/Impacto Esperado'))
+    actual_result = models.TextField(blank=True, null=True, verbose_name=_('Resultado Real/Logro'))
     
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium', verbose_name=_('Prioridad'))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planned', verbose_name=_('Estado'))

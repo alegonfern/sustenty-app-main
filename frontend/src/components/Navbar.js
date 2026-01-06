@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
+import NavbarDiscoverButton from './NavbarDiscoverButton';
 import { toast } from 'react-toastify';
 
 const Navbar = () => {
@@ -36,6 +37,7 @@ const Navbar = () => {
           Sustenty
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
+          <NavbarDiscoverButton />
           {isAuthenticated ? (
             <>
               <Button

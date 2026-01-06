@@ -59,6 +59,43 @@ export default function NotificationMenu({ onCreateOrganization }) {
     checkOrganizations();
   }, []);
 
+  // --- NOTIFICACIONES REALES ---
+  const [notifications, setNotifications] = useState([]);
+    // fallback para evitar errores si notifications no es array
+    const safeNotifications = Array.isArray(notifications) ? notifications : [];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!hasOrganization) return;
+    const fetchNotifications = async () => {
+      setLoading(true);
+      try {
+        const res = await api.getNotifications();
+        setNotifications(Array.isArray(res.data) ? res.data : []);
+        setError(null);
+      } catch (e) {
+        setError('Error al cargar notificaciones');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotifications();
+  }, [hasOrganization]);
+
+  const unreadCount = safeNotifications.filter((n) => !n.read).length;
+
+  const handleMarkAllRead = async () => {
+    try {
+      await Promise.all(
+        safeNotifications.filter((n) => !n.read).map((n) => api.markNotificationRead(n.id))
+      );
+      setNotifications(safeNotifications.map((n) => ({ ...n, read: true })));
+    } catch (e) {
+      // opcional: feedback de error
+    }
+  };
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -74,8 +111,6 @@ export default function NotificationMenu({ onCreateOrganization }) {
     setOpen(false);
     onCreateOrganization();
   };
-
-  const unreadCount = hasOrganization ? 0 : 1;
 
   return (
     <Box sx={{ flexShrink: 0, ml: 0.75 }}>
@@ -134,7 +169,7 @@ export default function NotificationMenu({ onCreateOrganization }) {
                     <>
                       {unreadCount > 0 && (
                         <Tooltip title="Marcar todo como leído">
-                          <IconButton color="success" size="small">
+                          <IconButton color="success" size="small" onClick={handleMarkAllRead}>
                             <CheckCircle style={{ fontSize: '1.15rem' }} />
                           </IconButton>
                         </Tooltip>
@@ -161,38 +196,42 @@ export default function NotificationMenu({ onCreateOrganization }) {
                       }
                     }}
                   >
-                    {!hasOrganization ? (
-                      <>
+                    {loading ? (
+                      <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
+                        <Typography variant="body2" color="text.secondary">Cargando notificaciones...</Typography>
+                      </Box>
+                    ) : error ? (
+                      <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
+                        <Typography variant="body2" color="error.main">{error}</Typography>
+                      </Box>
+                    ) : notifications.length > 0 ? (
+                      notifications.map((notif) => (
                         <ListItem
+                          key={notif.id}
                           component={ListItemButton}
                           divider
-                          selected
-                          onClick={handleCreateOrgClick}
+                          selected={!notif.read}
+                          onClick={async () => {
+                            if (!notif.read) {
+                              await api.markNotificationRead(notif.id);
+                              setNotifications(
+                                notifications.map(n => n.id === notif.id ? { ...n, read: true } : n)
+                              );
+                            }
+                            if (notif.url) window.open(notif.url, '_blank');
+                          }}
                         >
                           <ListItemAvatar>
-                            <Avatar sx={{ color: 'warning.main', bgcolor: 'warning.lighter' }}>
-                              <Business />
+                            <Avatar sx={{ color: notif.read ? 'grey.500' : 'primary.main', bgcolor: notif.read ? 'grey.100' : 'primary.lighter' }}>
+                              <NotificationsIcon />
                             </Avatar>
                           </ListItemAvatar>
                           <ListItemText
-                            primary={
-                              <Typography variant="h6">
-                                Crea tu primera organización
-                              </Typography>
-                            }
-                            secondary="Para comenzar a usar Sustenty, necesitas crear una organización"
+                            primary={<Typography variant="subtitle1">{notif.title}</Typography>}
+                            secondary={<Typography variant="body2" color="text.secondary">{notif.message}</Typography>}
                           />
                         </ListItem>
-                        <ListItemButton sx={{ textAlign: 'center', py: '12px !important' }}>
-                          <ListItemText
-                            primary={
-                              <Typography variant="h6" color="primary">
-                                Ver todas
-                              </Typography>
-                            }
-                          />
-                        </ListItemButton>
-                      </>
+                      ))
                     ) : (
                       <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
                         <NotificationsIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />

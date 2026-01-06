@@ -61,6 +61,8 @@ const Collection = () => {
     uncertainty_percentage: '',
     notes: ''
   });
+  const [formError, setFormError] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   // Cargar factores de emisión y períodos disponibles
   useEffect(() => {
@@ -121,6 +123,7 @@ const Collection = () => {
       uncertainty_percentage: '',
       notes: ''
     });
+    setFormError({});
   };
 
   const handleInputChange = (e) => {
@@ -143,10 +146,17 @@ const Collection = () => {
   };
 
   const handleSubmit = async () => {
+    let errors = {};
+    if (!formData.period) errors.period = 'El período es obligatorio';
+    if (!formData.metric) errors.metric = 'El factor de emisión es obligatorio';
+    if (!formData.collection_date) errors.collection_date = 'La fecha es obligatoria';
+    if (!formData.quantity || isNaN(formData.quantity) || parseFloat(formData.quantity) <= 0) errors.quantity = 'La cantidad debe ser mayor a 0';
+    setFormError(errors);
+    if (Object.keys(errors).length > 0) return;
+    setSubmitting(true);
     try {
       const selectedFactor = getSelectedFactor();
       const token = localStorage.getItem('token');
-      
       const dataToSend = {
         period: formData.period,
         metric: formData.metric,
@@ -156,7 +166,6 @@ const Collection = () => {
         notes: formData.notes,
         status: 'completed'
       };
-
       const response = await fetch('http://localhost:8000/api/v1/esg/data-collection/', {
         method: 'POST',
         headers: {
@@ -180,6 +189,8 @@ const Collection = () => {
     } catch (error) {
       console.error('Error:', error);
       alert('Error de conexión con el servidor');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -473,23 +484,25 @@ const Collection = () => {
                 <TextField
                   fullWidth
                   type="date"
-                  label="Fecha"
+                  label="Fecha*"
                   name="collection_date"
                   value={formData.collection_date}
                   onChange={handleInputChange}
                   required
                   InputLabelProps={{ shrink: true }}
+                  error={!!formError.collection_date}
+                  helperText={formError.collection_date}
                 />
               </Grid>
 
               <Grid item xs={12}>
-                <FormControl fullWidth required>
-                  <InputLabel>Factor de Emisión</InputLabel>
+                <FormControl fullWidth required error={!!formError.metric}>
+                  <InputLabel>Factor de Emisión*</InputLabel>
                   <Select
                     name="metric"
                     value={formData.metric}
                     onChange={handleInputChange}
-                    label="Factor de Emisión"
+                    label="Factor de Emisión*"
                   >
                     {emissionFactors.map((factor) => (
                       <MenuItem key={factor.id} value={factor.id}>
@@ -502,6 +515,7 @@ const Collection = () => {
                       </MenuItem>
                     ))}
                   </Select>
+                  {formError.metric && <Typography color="error" variant="caption">{formError.metric}</Typography>}
                 </FormControl>
               </Grid>
 
@@ -554,7 +568,7 @@ const Collection = () => {
             variant="contained" 
             disabled={!formData.period || !formData.metric || !formData.quantity || !formData.collection_date}
           >
-            Guardar Registro
+            {submitting ? 'Guardando...' : 'Guardar Registro'}
           </Button>
         </DialogActions>
       </Dialog>

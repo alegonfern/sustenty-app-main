@@ -101,6 +101,7 @@ class ESGGoalSerializer(serializers.ModelSerializer):
 class ESGActionSerializer(serializers.ModelSerializer):
     category_detail = ESGCategorySerializer(source='category', read_only=True)
     goal_detail = ESGGoalSerializer(source='goal', read_only=True)
+    metric_detail = ESGMetricSerializer(source='metric', read_only=True)
     responsible_detail = UserBasicSerializer(source='responsible', read_only=True)
     team_members_detail = UserBasicSerializer(source='team_members', many=True, read_only=True)
     created_by_detail = UserBasicSerializer(source='created_by', read_only=True)

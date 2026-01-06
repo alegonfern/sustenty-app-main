@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Autocomplete } from '@mui/material';
 import { api } from '../../services/api';
 import { useForm } from 'react-hook-form';
@@ -58,6 +58,16 @@ const Actions = () => {
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [metrics, setMetrics] = useState([]);
+    // Cargar métricas ESG
+    const fetchMetrics = async () => {
+      try {
+        const res = await api.getESGMetrics();
+        setMetrics(res.data);
+      } catch (e) {
+        setMetrics([]);
+      }
+    };
   const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm();
 
   // Cargar acciones reales
@@ -65,6 +75,7 @@ const Actions = () => {
     fetchActions();
     fetchOrganizations();
     fetchCurrentUser();
+    fetchMetrics();
   }, []);
 
   useEffect(() => {
@@ -144,6 +155,9 @@ const Actions = () => {
     reset({ ...action });
     setValue('responsible', action.responsible || null);
     setValue('team_members', action.team_members || []);
+    setValue('metric', action.metric || null);
+    setValue('expected_impact', action.expected_impact || '');
+    setValue('actual_result', action.actual_result || '');
     // Buscar la organización de la acción
     const org = organizations.find(o => o.id === action.organization) || organizations[0] || null;
     setSelectedOrg(org);
@@ -157,6 +171,9 @@ const Actions = () => {
       ...data,
       responsible: data.responsible ? data.responsible.id : null,
       team_members: (data.team_members || []).map(u => u.id),
+      metric: data.metric || null,
+      expected_impact: data.expected_impact || '',
+      actual_result: data.actual_result || '',
     };
     try {
       if (editAction) {
@@ -218,12 +235,12 @@ const Actions = () => {
   };
 
   // Estadísticas de acciones (usando estados reales)
-  const stats = {
+  const stats = useMemo(() => ({
     total: actions.length,
     completed: actions.filter(a => a.status === 'completed').length,
     inProgress: actions.filter(a => a.status === 'in_progress').length,
     planned: actions.filter(a => a.status === 'planned').length
-  };
+  }), [actions]);
 
   return (
     <Container maxWidth="xl">
@@ -325,6 +342,9 @@ const Actions = () => {
               <TableRow>
                 <TableCell><strong>Acción</strong></TableCell>
                 <TableCell><strong>Categoría</strong></TableCell>
+                <TableCell><strong>Métrica</strong></TableCell>
+                <TableCell><strong>Impacto Esperado</strong></TableCell>
+                <TableCell><strong>Resultado Real</strong></TableCell>
                 <TableCell><strong>Prioridad</strong></TableCell>
                 <TableCell><strong>Estado</strong></TableCell>
                 <TableCell><strong>Progreso</strong></TableCell>
@@ -351,6 +371,19 @@ const Actions = () => {
                         size="small"
                         variant="outlined"
                       />
+                    </TableCell>
+                    <TableCell>
+                      {action.metric_detail?.name || '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                        {action.expected_impact || '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                        {action.actual_result || '-'}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Chip 
@@ -430,7 +463,7 @@ const Actions = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogContent>
             <Stack spacing={2}>
-              <TextField label="Título" {...register('title', { required: true })} fullWidth />
+              <TextField label="Título*" {...register('title', { required: true })} fullWidth error={!watch('title')} helperText={!watch('title') ? 'Campo obligatorio' : ''} />
               <TextField label="Descripción" {...register('description')} fullWidth multiline rows={2} />
               <TextField
                 label="Organización"
@@ -468,7 +501,7 @@ const Actions = () => {
                 getOptionLabel={u => u._role === 'Admin' ? `${u.first_name} ${u.last_name} (Admin)` : `${u.name || u.email || u.username} (Miembro)`}
                 value={watch('responsible') || null}
                 onChange={(_, value) => setValue('responsible', value)}
-                renderInput={(params) => <TextField {...params} label="Responsable" fullWidth />}
+                renderInput={(params) => <TextField {...params} label="Responsable*" fullWidth error={!watch('responsible')} helperText={!watch('responsible') ? 'Selecciona un responsable' : ''} />}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
               />
               <Autocomplete
@@ -484,11 +517,28 @@ const Actions = () => {
               <TextField label="Fecha de Inicio" type="date" {...register('start_date')} fullWidth InputLabelProps={{ shrink: true }} />
               <TextField label="Fecha de Fin" type="date" {...register('end_date')} fullWidth InputLabelProps={{ shrink: true }} />
               <TextField label="Presupuesto" type="number" {...register('budget')} fullWidth />
+              <TextField
+                label="Métrica Asociada*"
+                select
+                {...register('metric', { required: true })}
+                fullWidth
+                error={!Array.isArray(metrics) && !metrics ? true : !metrics || !metrics.length ? true : !watch('metric')}
+                helperText={Array.isArray(metrics) || metrics ? (!metrics || !metrics.length ? 'No hay métricas disponibles' : (!watch('metric') ? 'Selecciona una métrica' : '')) : 'Error cargando métricas'}
+              >
+                <MenuItem value="">Ninguna</MenuItem>
+                {Array.isArray(metrics) ? metrics.map(metric => (
+                  <MenuItem key={metric.id} value={metric.id}>
+                    {metric.name}
+                  </MenuItem>
+                )) : null}
+              </TextField>
             </Stack>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
-            <Button type="submit" variant="contained" disabled={isSubmitting}>{isSubmitting ? 'Guardando...' : 'Guardar'}</Button>
+            <Button type="submit" variant="contained" disabled={isSubmitting} aria-label="Guardar acción">
+              {isSubmitting ? <CircularProgress size={20} /> : 'Guardar'}
+            </Button>
           </DialogActions>
         </form>
       </Dialog>

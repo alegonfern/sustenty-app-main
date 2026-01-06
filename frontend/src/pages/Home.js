@@ -36,8 +36,10 @@ import {
   KeyboardArrowRight
 } from '@mui/icons-material';
 import MainCard from '../components/MainCard';
+import MyImpact from './dashboard/MyImpact';
 import { api } from '../services/api';
 import InfoTooltip from '../components/InfoTooltip';
+import DiscoverFeed from '../components/DiscoverFeed';
 
 // Componente de tarjeta analítica con tooltip informativo
 function AnalyticCard({ title, count, percentage, isLoss = false, color = 'primary', icon: Icon, infoKey }) {
@@ -89,6 +91,30 @@ function AnalyticCard({ title, count, percentage, isLoss = false, color = 'prima
 }
 
 export default function Home() {
+    // Feed de buenas prácticas ESG (mock por ahora)
+    const [discoverFeed, setDiscoverFeed] = useState([
+      {
+        id: 1,
+        type: 'highlight',
+        title: 'Acción destacada: Reducción de plásticos',
+        description: 'La organización X logró reducir el uso de plásticos en un 30% este trimestre.',
+        tags: ['ambiental', 'innovación'],
+      },
+      {
+        id: 2,
+        type: 'suggestion',
+        title: 'Sugerencia: Implementa reciclaje en oficinas',
+        description: 'El 80% de las empresas líderes tienen programas de reciclaje interno. ¡Súmate!',
+        tags: ['ambiental', 'práctica'],
+      },
+      {
+        id: 3,
+        type: 'recommendation',
+        title: 'Recomendación ESG: Medición de huella hídrica',
+        description: 'Comienza a medir el consumo de agua para mejorar tu reporte ESG.',
+        tags: ['agua', 'reporte'],
+      },
+    ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
@@ -349,6 +375,7 @@ export default function Home() {
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
+
       {/* Sección de bienvenida */}
       <Grid item xs={12}>
         <MainCard>
@@ -359,6 +386,25 @@ export default function Home() {
             <Typography variant="body1" color="text.secondary">
               Monitoreo de indicadores ambientales, sociales y de gobernanza
             </Typography>
+          </Box>
+        </MainCard>
+      </Grid>
+      {/* Panel Mi Impacto ESG debajo de bienvenida */}
+      <Grid item xs={12}>
+        <MyImpact />
+      </Grid>
+
+      {/* Discover ESG Feed - Buenas prácticas y sugerencias */}
+      <Grid item xs={12}>
+        <MainCard>
+          <Box>
+            <Typography variant="h4" color="primary.main" gutterBottom>
+              Discover ESG
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+              Acciones destacadas, sugerencias y recomendaciones para potenciar tu impacto.
+            </Typography>
+            <DiscoverFeed feed={discoverFeed} />
           </Box>
         </MainCard>
       </Grid>

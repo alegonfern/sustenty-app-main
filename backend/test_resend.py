@@ -2,7 +2,34 @@
 """
 Script de prueba para verificar la configuración de Resend
 """
-import os
+import osContinúa aplicando validaciones visuales, feedback de error y feedback de carga en los formularios de los siguientes módulos ESG:
+
+Scopes (frontend/src/pages/esg/Scopes.js)
+EmissionFactors (frontend/src/pages/esg/EmissionFactors.js)
+Analytics, Metas, Métricas, Categorías (si existen formularios editables)
+Revisa y mejora la experiencia en los módulos de Organización y Equipos:
+
+Aplica validaciones, feedback visual y UX en formularios de creación/edición de organizaciones, equipos y miembros.
+Optimiza la carga de datos y el rendimiento en tablas y listados.
+Mejora la experiencia en los módulos de usuario y autenticación:
+
+Valida y mejora formularios de login, registro, perfil y cambio de contraseña.
+Asegura feedback visual y mensajes claros de error.
+Optimiza los módulos de reportes y cumplimiento:
+
+Añade feedback visual, paginación y UX en dashboards y reportes.
+Mejora la carga eficiente de datos y la navegación.
+Revisa el backend para rendimiento y experiencia:
+
+Agrega paginación en endpoints críticos.
+Optimiza queries y validaciones.
+Mejora el feedback de errores en la API.
+Al continuar, mantén el enfoque en:
+
+Validaciones obligatorias y mensajes claros.
+Feedback visual inmediato (loading, error, éxito).
+Optimización de renders y carga de datos (useMemo, useCallback, paginación).
+Accesibilidad y usabilidad en todos los formularios y tablas.
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sustenty.settings')

@@ -11,6 +11,7 @@ import {
 import { useQuery } from 'react-query';
 import { api } from '../services/api';
 import { authService } from '../services/auth';
+import MyImpact from './dashboard/MyImpact';
 
 const Dashboard = () => {
   const { data: healthData } = useQuery('health', api.healthCheck);
@@ -28,6 +29,11 @@ const Dashboard = () => {
       </Box>
 
       <Grid container spacing={3}>
+        {/* Panel Mi Impacto */}
+        <Grid item xs={12}>
+          <MyImpact />
+        </Grid>
+
         {/* Estadísticas principales */}
         <Grid item xs={12} md={4}>
           <Card>

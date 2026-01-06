@@ -1,4 +1,14 @@
 from rest_framework import serializers
+from .models import Notification
+# --- SERIALIZER DE NOTIFICACIONES ---
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = [
+            'id', 'user', 'notif_type', 'title', 'message', 'url',
+            'created_at', 'read', 'reinforced_by_email', 'sent_email'
+        ]
+        read_only_fields = ['id', 'created_at', 'sent_email']
 from .models import Organization, UserSettings, Integration
 import re
 

@@ -24,6 +24,7 @@ import {
   Paper,
   Switch,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import { Add, Edit, Delete, CheckCircle, Cancel, Lock, LockOpen } from '@mui/icons-material';
 import { api } from '../../services/api';
@@ -43,6 +44,8 @@ export default function Periods() {
     end_date: '',
     is_active: false,
   });
+  const [formError, setFormError] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (selectedOrganization) {
@@ -104,23 +107,28 @@ export default function Periods() {
   };
 
   const handleSubmit = async () => {
+    let errors = {};
     if (!selectedOrganization) {
       setError('Debes seleccionar una organización primero');
       return;
     }
-
+    if (!formData.name) errors.name = 'El nombre es obligatorio';
+    if (!formData.start_date) errors.start_date = 'La fecha de inicio es obligatoria';
+    if (!formData.end_date) errors.end_date = 'La fecha de fin es obligatoria';
+    if (formData.start_date && formData.end_date && formData.start_date > formData.end_date) errors.end_date = 'La fecha de fin debe ser posterior a la de inicio';
+    setFormError(errors);
+    if (Object.keys(errors).length > 0) return;
+    setSubmitting(true);
     try {
       const payload = {
         ...formData,
         organization: selectedOrganization.id,
       };
-
       if (editingPeriod) {
         await api.put(`/esg/periods/${editingPeriod.id}/`, payload);
       } else {
         await api.post('/esg/periods/', payload);
       }
-
       await loadPeriods();
       refreshPeriods(); // Actualizar el contexto global
       handleCloseDialog();
@@ -128,6 +136,8 @@ export default function Periods() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al guardar el período');
       console.error(err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -312,10 +322,12 @@ export default function Periods() {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Nombre"
+                label="Nombre*"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
+                error={!!formError.name}
+                helperText={formError.name}
               />
             </Grid>
             <Grid item xs={12}>
@@ -331,31 +343,35 @@ export default function Periods() {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Fecha Inicio"
+                label="Fecha Inicio*"
                 type="date"
                 value={formData.start_date}
                 onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                 InputLabelProps={{ shrink: true }}
                 required
+                error={!!formError.start_date}
+                helperText={formError.start_date}
               />
             </Grid>
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Fecha Fin"
+                label="Fecha Fin*"
                 type="date"
                 value={formData.end_date}
                 onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                 InputLabelProps={{ shrink: true }}
                 required
+                error={!!formError.end_date}
+                helperText={formError.end_date}
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {editingPeriod ? 'Guardar' : 'Crear'}
+          <Button onClick={handleSubmit} variant="contained" disabled={submitting} aria-label="Guardar período">
+            {submitting ? <span style={{ display: 'inline-block', width: 20 }}><CircularProgress size={20} /></span> : (editingPeriod ? 'Guardar' : 'Crear')}
           </Button>
         </DialogActions>
       </Dialog>

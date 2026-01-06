@@ -3,6 +3,42 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+class Notification(models.Model):
+    """
+    Notificación para el usuario, con refuerzo opcional por correo
+    """
+    NOTIF_TYPE_CHOICES = [
+        ('alert', 'Alerta'),
+        ('reminder', 'Recordatorio'),
+        ('info', 'Informativa'),
+        ('action', 'Acción requerida'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    notif_type = models.CharField(max_length=20, choices=NOTIF_TYPE_CHOICES, default='info')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    url = models.URLField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+    reinforced_by_email = models.BooleanField(default=False)
+    sent_email = models.BooleanField(default=False)
+
+    def send_email(self):
+        """Envía la notificación por correo si corresponde y no se ha enviado aún"""
+        if self.reinforced_by_email and not self.sent_email:
+            # Aquí se integraría con el servicio de correo
+            from .email_service import send_notification_email
+            send_notification_email(self.user.email, self.title, self.message, self.url)
+            self.sent_email = True
+            self.save()
+
+    def __str__(self):
+        return f"Notificación para {self.user.username}: {self.title}"
+from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 # Create your models here.
 
 class BaseModel(models.Model):

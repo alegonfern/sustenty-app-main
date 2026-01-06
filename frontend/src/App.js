@@ -5,6 +5,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AuthCallback from './pages/AuthCallback';
 import Home from './pages/Home';
+import Discover from './pages/Discover';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Help from './pages/Help';
@@ -53,6 +54,7 @@ function App() {
         }
       >
         <Route index element={<Home />} />
+        <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
         <Route path="profile" element={<Profile />} />
         <Route path="organizations" element={<Organizations />} />
         <Route path="esg/collection" element={<Collection />} />

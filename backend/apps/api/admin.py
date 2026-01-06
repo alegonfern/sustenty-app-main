@@ -1,5 +1,13 @@
+
 from django.contrib import admin
-from .models import Organization
+from .models import Notification, Organization
+
+# --- ADMIN DE NOTIFICACIONES ---
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'notif_type', 'title', 'created_at', 'read', 'reinforced_by_email', 'sent_email')
+    list_filter = ('notif_type', 'read', 'reinforced_by_email', 'sent_email')
+    search_fields = ('title', 'message', 'user__username')
 
 
 @admin.register(Organization)

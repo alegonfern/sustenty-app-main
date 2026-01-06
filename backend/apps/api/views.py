@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets, permissions
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
@@ -9,8 +9,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Organization
-from .serializers import OrganizationSerializer, OrganizationCreateSerializer
+from .models import Organization, Notification
+from .serializers import OrganizationSerializer, OrganizationCreateSerializer, NotificationSerializer
 
 
 @api_view(['GET'])
@@ -1239,3 +1239,108 @@ def contact_support(request):
             'message': 'Mensaje recibido. Te contactaremos pronto.',
             'success': True  # Siempre retornar success para el usuario
         })
+
+
+# =============================================================================
+# NOTIFICACIONES
+# =============================================================================
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        notif = serializer.save(user=self.request.user)
+        notif.send_email()
+
+    def perform_update(self, serializer):
+        notif = serializer.save()
+        if notif.reinforced_by_email and not notif.sent_email:
+            notif.send_email()
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_sample_notifications(request):
+    """
+    Crea varias notificaciones de ejemplo para el usuario autenticado
+    """
+    user = request.user
+    Notification.objects.create(
+        user=user,
+        notif_type='alert',
+        title='¡Acción próxima a vencer!',
+        message='Tienes una acción ESG que vence mañana. No olvides completarla.',
+        url='/acciones',
+        reinforced_by_email=True
+    )
+    Notification.objects.create(
+        user=user,
+        notif_type='reminder',
+        title='Carga tus métricas ESG',
+        message='Recuerda cargar los datos de emisiones del mes actual.',
+        url='/metricas',
+        reinforced_by_email=False
+    )
+    Notification.objects.create(
+        user=user,
+        notif_type='info',
+        title='Nuevo logro desbloqueado',
+        message='¡Felicidades! Has completado tu primera acción de sostenibilidad.',
+        url='/dashboard',
+        reinforced_by_email=False
+    )
+    return Response({'detail': 'Notificaciones de ejemplo creadas.'})
+
+from datetime import date, timedelta
+from apps.esg.models import ESGAction, ESGDataCollection
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generate_auto_notifications(request):
+    """
+    Genera notificaciones automáticas para el usuario autenticado:
+    - Acciones ESG próximas a vencer (dentro de 3 días)
+    - Métricas ESG pendientes de carga para el mes actual
+    """
+    user = request.user
+    today = date.today()
+    # Acciones próximas a vencer
+    actions = ESGAction.objects.filter(
+        responsible=user,
+        status__in=['planned', 'in_progress'],
+        end_date__gte=today,
+        end_date__lte=today + timedelta(days=3)
+    )
+    for action in actions:
+        Notification.objects.get_or_create(
+            user=user,
+            notif_type='alert',
+            title=f'Acción próxima a vencer: {action.title}',
+            message=f'La acción "{action.title}" vence el {action.end_date}.',
+            url=f'/acciones/{action.id}',
+            reinforced_by_email=True,
+            read=False
+        )
+    # Métricas pendientes de carga
+    current_month = today.month
+    current_year = today.year
+    metrics_pending = ESGDataCollection.objects.filter(
+        responsible=user,
+        status='pending',
+        collection_date__year=current_year,
+        collection_date__month=current_month
+    )
+    for metric in metrics_pending:
+        Notification.objects.get_or_create(
+            user=user,
+            notif_type='reminder',
+            title=f'Métrica pendiente: {metric.metric.name}',
+            message=f'Falta cargar la métrica "{metric.metric.name}" para el período {metric.period.name}.',
+            url=f'/metricas/{metric.id}',
+            reinforced_by_email=False,
+            read=False
+        )
+    return Response({'detail': 'Notificaciones automáticas generadas.'})

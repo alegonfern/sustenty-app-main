@@ -8,6 +8,7 @@ from . import views
 from .oauth_views import google_callback, SocialAuthenticationErrorView
 
 router = DefaultRouter()
+router.register(r'notifications', views.NotificationViewSet, basename='notification')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -49,4 +50,6 @@ urlpatterns = [
     
     # Contact / Support
     path('contact/', views.contact_support, name='contact_support'),
+    path('notifications/sample/', views.create_sample_notifications, name='create_sample_notifications'),
+    path('notifications/auto/', views.generate_auto_notifications, name='generate_auto_notifications'),
 ]

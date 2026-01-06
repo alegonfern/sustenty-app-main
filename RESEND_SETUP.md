@@ -66,29 +66,34 @@ docker-compose restart backend
 ## ✅ Tipos de Emails Implementados
 
 ### 1. 🔐 Reset de Contraseña
+
 - **Cuándo**: Usuario hace clic en "¿Olvidaste tu contraseña?"
 - **Contenido**: Link para restablecer contraseña (válido 1 hora)
 - **Vista**: `password_reset_request` en `views.py`
 
 ### 2. 🌱 Resumen Semanal
+
 - **Cuándo**: Cada lunes automáticamente (si está habilitado en Settings)
-- **Contenido**: 
+- **Contenido**:
   - Emisiones registradas en la semana
   - Documentos procesados
   - Puntuación de cumplimiento
 - **Comando**: `python manage.py send_weekly_digest`
 
 ### 3. ⚠️ Alerta de Emisiones
+
 - **Cuándo**: Las emisiones superan un umbral configurado
 - **Contenido**: Detalles de la emisión y enlace al dashboard
 - **Función**: `email_service.send_emission_alert()`
 
 ### 4. 🔔 Alerta de Cumplimiento
+
 - **Cuándo**: Cambios en normativas o brechas de cumplimiento
 - **Contenido**: Detalles de la regulación afectada
 - **Función**: `email_service.send_compliance_alert()`
 
 ### 5. 📅 Recordatorio de Fechas
+
 - **Cuándo**: X días antes de una fecha límite
 - **Contenido**: Tarea pendiente y fecha límite
 - **Función**: `email_service.send_deadline_reminder()`
@@ -98,6 +103,7 @@ docker-compose restart backend
 ## 🧪 Probar Emails en Desarrollo
 
 ### Opción 1: Sin API key (Modo consola)
+
 Los emails se muestran en los logs del backend:
 
 ```bash
@@ -105,6 +111,7 @@ docker logs sustenty-app-main-backend-1 --tail 50
 ```
 
 ### Opción 2: Con API key de Resend
+
 Los emails se envían realmente a tu email:
 
 1. Agrega tu `RESEND_API_KEY` al `.env`
@@ -138,20 +145,21 @@ Cada usuario puede controlar sus preferencias en `/settings`:
 
 ## 🔧 Archivos Modificados
 
-| Archivo | Propósito |
-|---------|-----------|
-| `backend/requirements.txt` | Agregado `resend==0.8.0` |
-| `backend/sustenty/settings.py` | Configuración de Resend |
-| `backend/apps/api/email_service.py` | **NUEVO** - Servicio centralizado de emails |
-| `backend/apps/api/views.py` | Actualizado reset password para usar Resend |
-| `backend/apps/api/management/commands/send_weekly_digest.py` | **NUEVO** - Comando para resumen semanal |
-| `.env.prod.example` | Variables de entorno actualizadas |
+| Archivo                                                      | Propósito                                   |
+| ------------------------------------------------------------ | ------------------------------------------- |
+| `backend/requirements.txt`                                   | Agregado `resend==0.8.0`                    |
+| `backend/sustenty/settings.py`                               | Configuración de Resend                     |
+| `backend/apps/api/email_service.py`                          | **NUEVO** - Servicio centralizado de emails |
+| `backend/apps/api/views.py`                                  | Actualizado reset password para usar Resend |
+| `backend/apps/api/management/commands/send_weekly_digest.py` | **NUEVO** - Comando para resumen semanal    |
+| `.env.prod.example`                                          | Variables de entorno actualizadas           |
 
 ---
 
 ## 🎨 Plantillas de Email
 
 Todas las plantillas incluyen:
+
 - ✅ HTML responsivo
 - ✅ Diseño con colores de marca (#80cfc5)
 - ✅ Botones de call-to-action
@@ -164,6 +172,7 @@ Todas las plantillas incluyen:
 ## 🚀 Próximos Pasos
 
 ### Para activar ahora:
+
 1. Crear cuenta en Resend (5 minutos)
 2. Copiar API key
 3. Agregar a `.env`: `RESEND_API_KEY=re_...`
@@ -171,6 +180,7 @@ Todas las plantillas incluyen:
 5. ¡Listo! Los emails funcionarán automáticamente
 
 ### Para producción:
+
 1. Verificar dominio en Resend
 2. Configurar DKIM/SPF
 3. Actualizar `DEFAULT_FROM_EMAIL` con tu dominio
