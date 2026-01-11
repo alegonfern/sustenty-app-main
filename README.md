@@ -193,6 +193,18 @@ REACT_APP_API_URL=http://localhost:8000/api/v1
 REACT_APP_ENV=development
 ```
 
+## 🔑 Configuración de Google OAuth
+
+Si vas a usar login con Google, después de restaurar, resetear o migrar la base de datos, ejecuta este script para evitar errores:
+
+```bash
+docker-compose exec backend python setup_google_oauth.py
+```
+
+Este comando crea o actualiza la app SocialApp necesaria para el login con Google. Si no lo ejecutas, verás errores como DoesNotExist en /accounts/google/login/.
+
+Asegúrate también de configurar los URIs de redireccionamiento y orígenes autorizados en Google Cloud Console según las instrucciones que aparecen al ejecutar el script.
+
 ## 📈 Próximos Pasos
 
 - [ ] Implementar módulo de proyectos de sostenibilidad
