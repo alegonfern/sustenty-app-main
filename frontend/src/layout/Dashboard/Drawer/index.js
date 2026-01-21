@@ -83,7 +83,7 @@ const menuGroups = [
     title: 'Navegación',
     type: 'group',
     children: [
-      { id: 'home', text: 'Inicio', icon: <Home size={20} />, path: '/', type: 'item' }
+      { id: 'home', text: 'Inicio', icon: <Home size={20} />, path: '/app', type: 'item' }
     ]
   },
   {
@@ -91,10 +91,10 @@ const menuGroups = [
     title: 'Esg',
     type: 'group',
     children: [
-      { id: 'esg-collection', text: 'Colección', icon: <Database size={20} />, path: '/esg/collection', type: 'item' },
-      { id: 'esg-analytics', text: 'Analítica', icon: <BarChart3 size={20} />, path: '/esg/analytics', type: 'item' },
-      { id: 'esg-actions', text: 'Acciones', icon: <ListChecks size={20} />, path: '/esg/actions', type: 'item' },
-      { id: 'esg-config', text: 'Configuración', icon: <Settings size={20} />, path: '/esg/config', type: 'item' }
+      { id: 'esg-collection', text: 'Colección', icon: <Database size={20} />, path: '/app/esg/collection', type: 'item' },
+      { id: 'esg-analytics', text: 'Analítica', icon: <BarChart3 size={20} />, path: '/app/esg/analytics', type: 'item' },
+      { id: 'esg-actions', text: 'Acciones', icon: <ListChecks size={20} />, path: '/app/esg/actions', type: 'item' },
+      { id: 'esg-config', text: 'Configuración', icon: <Settings size={20} />, path: '/app/esg/config', type: 'item' }
     ]
   },
   {
@@ -102,11 +102,11 @@ const menuGroups = [
     title: 'Cumplimiento',
     type: 'group',
     children: [
-      { id: 'compliance-dashboard', text: 'Dashboard', icon: <ShieldCheck size={20} />, path: '/compliance/dashboard', type: 'item' },
-      { id: 'compliance-documents', text: 'Documentos', icon: <FileText size={20} />, path: '/compliance/documents', type: 'item' },
-      { id: 'compliance-analyses', text: 'Análisis', icon: <LineChart size={20} />, path: '/compliance/analyses', type: 'item' },
-      { id: 'compliance-gaps', text: 'Brechas', icon: <AlertTriangle size={20} />, path: '/compliance/gaps', type: 'item' },
-      { id: 'compliance-reports', text: 'Reportes', icon: <ClipboardList size={20} />, path: '/compliance/reports', type: 'item' }
+      { id: 'compliance-dashboard', text: 'Dashboard', icon: <ShieldCheck size={20} />, path: '/app/compliance/dashboard', type: 'item' },
+      { id: 'compliance-documents', text: 'Documentos', icon: <FileText size={20} />, path: '/app/compliance/documents', type: 'item' },
+      { id: 'compliance-analyses', text: 'Análisis', icon: <LineChart size={20} />, path: '/app/compliance/analyses', type: 'item' },
+      { id: 'compliance-gaps', text: 'Brechas', icon: <AlertTriangle size={20} />, path: '/app/compliance/gaps', type: 'item' },
+      { id: 'compliance-reports', text: 'Reportes', icon: <ClipboardList size={20} />, path: '/app/compliance/reports', type: 'item' }
     ]
   },
   {
@@ -114,8 +114,8 @@ const menuGroups = [
     title: 'Gestión',
     type: 'group',
     children: [
-      { id: 'organizations', text: 'Organizaciones', icon: <Building2 size={20} />, path: '/organizations', type: 'item' },
-      { id: 'teams', text: 'Equipo', icon: <Users size={20} />, path: '/team/teams', type: 'item' }
+      { id: 'organizations', text: 'Organizaciones', icon: <Building2 size={20} />, path: '/app/organizations', type: 'item' },
+      { id: 'teams', text: 'Equipo', icon: <Users size={20} />, path: '/app/team/teams', type: 'item' }
     ]
   },
   {
@@ -123,8 +123,8 @@ const menuGroups = [
     title: 'Sistema',
     type: 'group',
     children: [
-      { id: 'settings', text: 'Configuración', icon: <Settings size={20} />, path: '/settings', type: 'item' },
-      { id: 'help', text: 'Ayuda', icon: <HelpCircle size={20} />, path: '/ayuda', type: 'item', badge: 'Soporte' }
+      { id: 'settings', text: 'Configuración', icon: <Settings size={20} />, path: '/app/settings', type: 'item' },
+      { id: 'help', text: 'Ayuda', icon: <HelpCircle size={20} />, path: '/app/ayuda', type: 'item', badge: 'Soporte' }
     ]
   }
 ];

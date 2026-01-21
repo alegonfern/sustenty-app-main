@@ -47,12 +47,11 @@ const Login = () => {
     onSuccess: (response) => {
       const { access, refresh } = response.data;
       authService.login(access, refresh, rememberMe);
-      
       // Disparar evento para que AppContext recargue los datos
       window.dispatchEvent(new Event('auth-login'));
-      
       toast.success('¡Inicio de sesión exitoso!');
-      navigate('/');
+      // Redirigir usando navigate para mantener el SPA
+      navigate('/app', { replace: true });
     },
     onError: (error) => {
       console.error('Login error:', error);
@@ -87,7 +86,7 @@ const Login = () => {
   // Redirect if already authenticated
   React.useEffect(() => {
     if (authService.isAuthenticated()) {
-      navigate('/');
+      navigate('/app', { replace: true });
     }
   }, [navigate]);
 

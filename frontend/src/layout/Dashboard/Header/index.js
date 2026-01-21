@@ -248,7 +248,7 @@ export default function Header({ open, handleDrawerToggle }) {
                   </Typography>
                 </Box>
                 
-                <MenuItem onClick={() => navigate('/profile')}>
+                <MenuItem onClick={() => navigate('/app/profile')}>
                   <User size={16} style={{ marginRight: 16 }} />
                   Mi Perfil
                 </MenuItem>

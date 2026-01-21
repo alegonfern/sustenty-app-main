@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useApp } from '../context/AppContext';
 import {
   Grid,
   Typography,
@@ -13,7 +14,8 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
-  MobileStepper
+  MobileStepper,
+  Button
 } from '@mui/material';
 import {
   TrendingUp,
@@ -90,9 +92,106 @@ function AnalyticCard({ title, count, percentage, isLoss = false, color = 'prima
   );
 }
 
+// ---
+// Definir funciones antes del componente para evitar ReferenceError
+const loadUser = async (setUser) => {
+  try {
+    const response = await api.getCurrentUser();
+    setUser(response.data);
+  } catch (error) {
+    console.error('Error al cargar usuario:', error);
+  }
+};
+
+const loadESGMetrics = async (setEsgData, setLoading, setError) => {
+  try {
+    setLoading(true);
+    const [dataRes, factorsRes, scopesRes, periodsRes, goalsRes, actionsRes] = await Promise.all([
+      api.getESGDataCollection(),
+      api.getESGMetrics(),
+      api.getESGScopes(),
+      api.getESGPeriods(),
+      api.getESGGoals(),
+      api.getESGActions()
+    ]);
+    const dataCollection = Array.isArray(dataRes.data) ? dataRes.data : dataRes.data.results || [];
+    const factors = Array.isArray(factorsRes.data) ? factorsRes.data : factorsRes.data.results || [];
+    const scopes = Array.isArray(scopesRes.data) ? scopesRes.data : scopesRes.data.results || [];
+    const periods = Array.isArray(periodsRes.data) ? periodsRes.data : periodsRes.data.results || [];
+    const goals = Array.isArray(goalsRes.data) ? goalsRes.data : goalsRes.data.results || [];
+    const actions = Array.isArray(actionsRes.data) ? actionsRes.data : actionsRes.data.results || [];
+    const totalEmissions = dataCollection.reduce((sum, record) => sum + (parseFloat(record.calculated_emission) || 0), 0);
+    const scopeData = {
+      scope1: dataCollection.filter(d => d.metric_detail?.scope_detail?.code === 'scope_1').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
+      scope2: dataCollection.filter(d => d.metric_detail?.scope_detail?.code === 'scope_2').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
+      scope3: dataCollection.filter(d => d.metric_detail?.scope_detail?.code === 'scope_3').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0)
+    };
+    const categoryCounts = {
+      environmental: dataCollection.filter(d => d.metric_detail?.category_detail?.code === 'environmental').length,
+      social: dataCollection.filter(d => d.metric_detail?.category_detail?.code === 'social').length,
+      governance: dataCollection.filter(d => d.metric_detail?.category_detail?.code === 'governance').length
+    };
+    const completedRecords = dataCollection.filter(d => d.status === 'completed').length;
+    const pendingRecords = dataCollection.filter(d => d.status === 'pending').length;
+    const recentData = dataCollection.sort((a, b) => new Date(b.collection_date) - new Date(a.collection_date)).slice(0, 5);
+    setEsgData({
+      totalEmissions,
+      scopeData,
+      categoryCounts,
+      totalFactors: factors.length,
+      totalScopes: scopes.length,
+      totalPeriods: periods.length,
+      totalActions: actions.length,
+      totalGoals: goals.length,
+      completedRecords,
+      pendingRecords,
+      recentData
+    });
+    setLoading(false);
+  } catch (err) {
+    console.error('Error loading ESG metrics:', err);
+    let errorMessage = 'Error al cargar las métricas ESG';
+    if (err.response?.status === 401) {
+      errorMessage = 'No estás autenticado. Por favor inicia sesión nuevamente.';
+    } else if (err.response?.status === 403) {
+      errorMessage = 'No tienes permisos para acceder a estos datos.';
+    } else if (err.response?.data?.detail) {
+      errorMessage = err.response.data.detail;
+    } else if (err.message) {
+      errorMessage = `Error: ${err.message}`;
+    }
+    setError(errorMessage);
+    setLoading(false);
+  }
+};
+
+const loadSustentIAInsights = async (setSustentiaInsights, setInsightLoading) => {
+  try {
+    setInsightLoading(true);
+    const response = await api.getSustentIAInsights();
+    if (Array.isArray(response.data)) {
+      setSustentiaInsights(response.data);
+    } else if (response.data.insights && Array.isArray(response.data.insights)) {
+      setSustentiaInsights(response.data.insights);
+    } else {
+      setSustentiaInsights([response.data]);
+    }
+  } catch (err) {
+    setSustentiaInsights([
+      { insight: 'Bienvenido a Sustenty. Comienza explorando las diferentes secciones para gestionar tu impacto ESG.', generated_at: new Date().toISOString(), context: {} },
+      { insight: 'Recuerda registrar tus datos de emisiones regularmente para un seguimiento preciso.', generated_at: new Date().toISOString(), context: {} },
+      { insight: 'Establece objetivos de reducción de emisiones para medir tu progreso.', generated_at: new Date().toISOString(), context: {} },
+      { insight: 'Involucra a tu equipo en las iniciativas de sostenibilidad para mayor impacto.', generated_at: new Date().toISOString(), context: {} },
+      { insight: 'Analiza tus datos ESG para identificar oportunidades de mejora.', generated_at: new Date().toISOString(), context: {} }
+    ]);
+  } finally {
+    setInsightLoading(false);
+  }
+};
+
 export default function Home() {
-    // Feed de buenas prácticas ESG (mock por ahora)
-    const [discoverFeed, setDiscoverFeed] = useState([
+  const { organizations } = useApp();
+  const [discoverFeed, setDiscoverFeed] = useState([
       {
         id: 1,
         type: 'highlight',
@@ -136,9 +235,9 @@ export default function Home() {
   });
 
   useEffect(() => {
-    loadUser();
-    loadESGMetrics();
-    loadSustentIAInsights();
+    loadUser(setUser);
+    loadESGMetrics(setEsgData, setLoading, setError);
+    loadSustentIAInsights(setSustentiaInsights, setInsightLoading);
   }, []);
 
   // Auto-avanzar el slider cada 5 segundos
@@ -153,163 +252,32 @@ export default function Home() {
     }
   }, [sustentiaInsights]);
 
-  const loadUser = async () => {
-    try {
-      const response = await api.getCurrentUser();
-      setUser(response.data);
-    } catch (error) {
-      console.error('Error al cargar usuario:', error);
-    }
-  };
 
-  const loadESGMetrics = async () => {
-    try {
-      setLoading(true);
-      
-      // Cargar todos los datos en paralelo usando el servicio API
-      const [dataRes, factorsRes, scopesRes, periodsRes, goalsRes, actionsRes] = await Promise.all([
-        api.getESGDataCollection(),
-        api.getESGMetrics(),
-        api.getESGScopes(),
-        api.getESGPeriods(),
-        api.getESGGoals(),
-        api.getESGActions()
-      ]);
+  // Render condicionales DESPUÉS de los hooks
+  if (error) {
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        <Typography variant="body1">Si el problema persiste, verifica tu sesión o contacta soporte.</Typography>
+        <Button variant="contained" color="primary" sx={{ mt: 2 }} href="/login">Ir a login</Button>
+      </Box>
+    );
+  }
 
-      // Extraer los datos (pueden venir paginados o no)
-      const dataCollection = Array.isArray(dataRes.data) ? dataRes.data : dataRes.data.results || [];
-      const factors = Array.isArray(factorsRes.data) ? factorsRes.data : factorsRes.data.results || [];
-      const scopes = Array.isArray(scopesRes.data) ? scopesRes.data : scopesRes.data.results || [];
-      const periods = Array.isArray(periodsRes.data) ? periodsRes.data : periodsRes.data.results || [];
-      const goals = Array.isArray(goalsRes.data) ? goalsRes.data : goalsRes.data.results || [];
-      const actions = Array.isArray(actionsRes.data) ? actionsRes.data : actionsRes.data.results || [];
+  if (Array.isArray(organizations) && organizations.length === 0) {
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Alert severity="info" sx={{ mb: 2 }}>
+          No tienes organizaciones asociadas a tu usuario.<br />
+          Crea una organización para comenzar a usar la plataforma.
+        </Alert>
+        {/* Si tienes un modal o página para crear organización, enlaza aquí */}
+        {/* <Button variant="contained" color="primary" href="/app/organizations/create">Crear organización</Button> */}
+      </Box>
+    );
+  }
 
-      // Calcular emisiones totales
-      const totalEmissions = dataCollection.reduce((sum, record) => 
-        sum + (parseFloat(record.calculated_emission) || 0), 0
-      );
 
-      // Emisiones por Scope
-      const scopeData = {
-        scope1: dataCollection
-          .filter(d => d.metric_detail?.scope_detail?.code === 'scope_1')
-          .reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
-        scope2: dataCollection
-          .filter(d => d.metric_detail?.scope_detail?.code === 'scope_2')
-          .reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
-        scope3: dataCollection
-          .filter(d => d.metric_detail?.scope_detail?.code === 'scope_3')
-          .reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0)
-      };
-
-      // Conteos por categoría
-      const categoryCounts = {
-        environmental: dataCollection.filter(d => 
-          d.metric_detail?.category_detail?.code === 'environmental'
-        ).length,
-        social: dataCollection.filter(d => 
-          d.metric_detail?.category_detail?.code === 'social'
-        ).length,
-        governance: dataCollection.filter(d => 
-          d.metric_detail?.category_detail?.code === 'governance'
-        ).length
-      };
-
-      // Estado de registros
-      const completedRecords = dataCollection.filter(d => d.status === 'completed').length;
-      const pendingRecords = dataCollection.filter(d => d.status === 'pending').length;
-
-      // Datos recientes (últimos 5)
-      const recentData = dataCollection
-        .sort((a, b) => new Date(b.collection_date) - new Date(a.collection_date))
-        .slice(0, 5);
-
-      setEsgData({
-        totalEmissions,
-        scopeData,
-        categoryCounts,
-        totalFactors: factors.length,
-        totalScopes: scopes.length,
-        totalPeriods: periods.length,
-        totalActions: actions.length,
-        totalGoals: goals.length,
-        completedRecords,
-        pendingRecords,
-        recentData
-      });
-      
-      setLoading(false);
-    } catch (err) {
-      console.error('Error loading ESG metrics:', err);
-      console.error('Error details:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
-      let errorMessage = 'Error al cargar las métricas ESG';
-      if (err.response?.status === 401) {
-        errorMessage = 'No estás autenticado. Por favor inicia sesión nuevamente.';
-      } else if (err.response?.status === 403) {
-        errorMessage = 'No tienes permisos para acceder a estos datos.';
-      } else if (err.response?.data?.detail) {
-        errorMessage = err.response.data.detail;
-      } else if (err.message) {
-        errorMessage = `Error: ${err.message}`;
-      }
-      
-      setError(errorMessage);
-      setLoading(false);
-    }
-  };
-
-  const loadSustentIAInsights = async () => {
-    try {
-      setInsightLoading(true);
-      const response = await api.getSustentIAInsights();
-      console.log('SustentIA insights response:', response.data);
-      
-      // Si el backend devuelve un array de insights
-      if (Array.isArray(response.data)) {
-        setSustentiaInsights(response.data);
-      } else if (response.data.insights && Array.isArray(response.data.insights)) {
-        setSustentiaInsights(response.data.insights);
-      } else {
-        // Fallback si es un solo insight
-        setSustentiaInsights([response.data]);
-      }
-    } catch (err) {
-      console.error('Error loading SustentIA insights:', err);
-      console.error('Error details:', err.response?.data);
-      // Fallback en caso de error con mensajes predeterminados
-      setSustentiaInsights([
-        {
-          insight: 'Bienvenido a Sustenty. Comienza explorando las diferentes secciones para gestionar tu impacto ESG.',
-          generated_at: new Date().toISOString(),
-          context: {}
-        },
-        {
-          insight: 'Recuerda registrar tus datos de emisiones regularmente para un seguimiento preciso.',
-          generated_at: new Date().toISOString(),
-          context: {}
-        },
-        {
-          insight: 'Establece objetivos de reducción de emisiones para medir tu progreso.',
-          generated_at: new Date().toISOString(),
-          context: {}
-        },
-        {
-          insight: 'Involucra a tu equipo en las iniciativas de sostenibilidad para mayor impacto.',
-          generated_at: new Date().toISOString(),
-          context: {}
-        },
-        {
-          insight: 'Analiza tus datos ESG para identificar oportunidades de mejora.',
-          generated_at: new Date().toISOString(),
-          context: {}
-        }
-      ]);
-    } finally {
-      setInsightLoading(false);
-    }
-  };
 
   const handleRefreshInsights = async () => {
     setInsightLoading(true);

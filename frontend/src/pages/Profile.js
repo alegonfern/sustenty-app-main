@@ -293,6 +293,16 @@ export default function Profile() {
     );
   }
 
+  if (!user) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mt: 4 }}>
+          Error al cargar el perfil. Verifica tu sesión o vuelve a intentarlo.
+        </Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mb: 4 }}>

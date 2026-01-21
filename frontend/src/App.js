@@ -19,6 +19,11 @@ import EmissionFactors from './pages/esg/EmissionFactors';
 import Scopes from './pages/esg/Scopes';
 import Periods from './pages/esg/Periods';
 import ESGConfig from './pages/esg/Config';
+import SaasLanding from './pages/SaasLanding';
+
+import Register from './pages/Register';
+
+
 // Compliance Module
 import {
   ComplianceDashboard,
@@ -42,11 +47,14 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/register" element={<div>Register Page</div>} />
+      <Route path="/register" element={<Register />} />
 
-      {/* Rutas con DashboardLayout */}
+        {/* Placeholder for landing page if needed */}
+        <Route path="/" element={<div>Landing page placeholder</div>}/>
+
+      {/* Rutas protegidas bajo /app */}
       <Route
-        path="/"
+        path="/app"
         element={
           <ProtectedRoute>
             <DashboardLayout />
@@ -85,4 +93,4 @@ function App() {
   );
 }
 
-export default App;
+  export default App;
