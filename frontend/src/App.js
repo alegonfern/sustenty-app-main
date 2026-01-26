@@ -20,6 +20,7 @@ import Scopes from './pages/esg/Scopes';
 import Periods from './pages/esg/Periods';
 import ESGConfig from './pages/esg/Config';
 import SaasLanding from './pages/SaasLanding';
+import Landing from './pages/Landing';
 
 import Register from './pages/Register';
 
@@ -49,8 +50,8 @@ function App() {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/register" element={<Register />} />
 
-        {/* Placeholder for landing page if needed */}
-        <Route path="/" element={<div>Landing page placeholder</div>}/>
+        {/* Landing page principal */}
+        <Route path="/" element={<Landing />}/>
 
       {/* Rutas protegidas bajo /app */}
       <Route
