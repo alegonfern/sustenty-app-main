@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+"""
+Script de prueba para verificar la configuración de Resend
+"""
+import osContinúa aplicando validaciones visuales, feedback de error y feedback de carga en los formularios de los siguientes módulos ESG:
+
+Scopes (frontend/src/pages/esg/Scopes.js)
+EmissionFactors (frontend/src/pages/esg/EmissionFactors.js)
+Analytics, Metas, Métricas, Categorías (si existen formularios editables)
+Revisa y mejora la experiencia en los módulos de Organización y Equipos:
+
+Aplica validaciones, feedback visual y UX en formularios de creación/edición de organizaciones, equipos y miembros.
+Optimiza la carga de datos y el rendimiento en tablas y listados.
+Mejora la experiencia en los módulos de usuario y autenticación:
+
+Valida y mejora formularios de login, registro, perfil y cambio de contraseña.
+Asegura feedback visual y mensajes claros de error.
+Optimiza los módulos de reportes y cumplimiento:
+
+Añade feedback visual, paginación y UX en dashboards y reportes.
+Mejora la carga eficiente de datos y la navegación.
+Revisa el backend para rendimiento y experiencia:
+
+Agrega paginación en endpoints críticos.
+Optimiza queries y validaciones.
+Mejora el feedback de errores en la API.
+Al continuar, mantén el enfoque en:
+
+Validaciones obligatorias y mensajes claros.
+Feedback visual inmediato (loading, error, éxito).
+Optimización de renders y carga de datos (useMemo, useCallback, paginación).
+Accesibilidad y usabilidad en todos los formularios y tablas.
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sustenty.settings')
+django.setup()
+
+from apps.api.email_service import EmailService
+from django.conf import settings
+
+print('=' * 50)
+print('CONFIGURACIÓN DE RESEND')
+print('=' * 50)
+print(f'API Key configurada: {"Sí" if settings.RESEND_API_KEY else "No"}')
+if settings.RESEND_API_KEY:
+    print(f'API Key: {settings.RESEND_API_KEY[:20]}...')
+print(f'From Email: {settings.DEFAULT_FROM_EMAIL}')
+print()
+
+# Test de envío real
+email_service = EmailService()
+print('=' * 50)
+print('PRUEBA DE ENVÍO')
+print('=' * 50)
+print('Enviando email de prueba a alexis@sustenty.com...')
+print()
+
+result = email_service.send_email(
+    to_email='alexis@sustenty.com',
+    subject='✅ Prueba Exitosa - Resend configurado en Sustenty',
+    html_content='''
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #10b981;">¡Resend está funcionando!</h1>
+        <p>Este email confirma que la integración con Resend está correctamente configurada en Sustenty.</p>
+        <ul style="line-height: 1.8;">
+            <li>✅ API Key válida</li>
+            <li>✅ Servicio de email operativo</li>
+            <li>✅ Listo para funcionalidades de email</li>
+        </ul>
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+        <p style="color: #666; font-size: 12px;">Enviado desde el entorno de desarrollo</p>
+    </div>
+    ''',
+    text_content='¡Resend está funcionando! La integración con Resend está correctamente configurada en Sustenty.'
+)
+
+print('=' * 50)
+print('RESULTADO')
+print('=' * 50)
+print(f'Success: {result.get("success")}')
+print(f'Message: {result.get("message")}')
+if result.get('message_id'):
+    print(f'✅ Email ID: {result.get("message_id")}')
+    print('\n✅ Email enviado correctamente! Revisa tu bandeja de entrada en alexis@sustenty.com')
+elif result.get('success'):
+    print('\n✅ Email enviado correctamente! Revisa tu bandeja de entrada en alexis@sustenty.com')
+else:
+    print('\n❌ Error al enviar el email.')
+    if result.get('error'):
+        print(f'Error: {result.get("error")}')

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Redirigiendo...</title>
+    <script>
+        // Capturar cualquier mensaje de error de la URL o usar un error genérico
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMsg = urlParams.get('error') || 'google_auth_error';
+        window.location.href = "http://localhost:3000/login?error=" + errorMsg;
+    </script>
+</head>
+<body>
+    <p>Redirigiendo a la aplicación...</p>
+</body>
+</html>

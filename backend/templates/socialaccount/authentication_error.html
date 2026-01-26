@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="0;url={{ redirect_url }}">
+    <title>Autenticación con Google</title>
+    <script>
+        // Redirigir al frontend con el error
+        window.location.href = "{{ frontend_url }}/login?error=google_auth_failed&message={{ error_message|urlencode }}";
+    </script>
+</head>
+<body>
+    <p>Redirigiendo...</p>
+</body>
+</html>

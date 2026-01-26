@@ -1,0 +1,90 @@
+# Docker Compose para TESTING/STAGING
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: sustenty_test
+      POSTGRES_USER: sustenty_test_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - sustenty-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - sustenty-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY}
+      DB_NAME: sustenty_test
+      DB_USER: sustenty_test_user
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    networks:
+      - sustenty-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - sustenty-network
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY}
+      DB_NAME: sustenty_test
+      DB_USER: sustenty_test_user
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    command: celery -A sustenty worker -l info
+    networks:
+      - sustenty-network
+
+volumes:
+  postgres_test_data:
+  static_volume:
+  media_volume:
+
+networks:
+  sustenty-network:
+    driver: bridge
