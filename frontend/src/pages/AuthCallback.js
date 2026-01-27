@@ -27,7 +27,7 @@ export default function AuthCallback() {
       window.dispatchEvent(new Event('auth-login'));
       
       toast.success('¡Inicio de sesión con Google exitoso!');
-      navigate('/');
+      navigate('/app');
     } else {
       toast.error('No se recibieron los tokens de autenticación');
       navigate('/login');
