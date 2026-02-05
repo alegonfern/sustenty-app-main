@@ -1,17 +1,69 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Landing.css';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Drawer, IconButton, List, ListItem, ListItemText, useMediaQuery } from '@mui/material';
 
 export default function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 900px)');
+  const menuItems = [
+    { label: 'Características', href: '#features' },
+    { label: 'Clientes', href: '#clientes' },
+    { label: 'Precios', href: '#precios' },
+    { label: 'Comenzar', href: '/register', className: 'landing' },
+    { label: 'Iniciar Sesión', href: '/login', className: 'landing-cta' }
+  ];
+
   return (
     <main className="landing-root">
       <header className="landing-header">
-        <img src="/logo-icon.svg" alt="Sustenty Logo" className="landing-logo" />
+        <img src="/logo-full.svg" alt="Sustenty Logo" className="landing-logo" />
         <nav className="landing-nav">
-          <a href="#features">Características</a>
-          <a href="#clientes">Clientes</a>
-          <a href="#precios">Precios</a>
-          <a href="/register" className="landing">Comenzar</a>
-          <a href="/login" className="landing-cta">Iniciar Sesión</a>
+          {!isMobile && (
+            <div className="landing-nav-desktop" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+              {menuItems.map(item => (
+                <a key={item.label} href={item.href} className={item.className || ''} style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          )}
+          {isMobile && (
+            <div className="landing-nav-mobile">
+              <IconButton onClick={() => setMenuOpen(true)}>
+                <MenuIcon fontSize="large" />
+              </IconButton>
+              <Drawer anchor="right" open={menuOpen} onClose={() => setMenuOpen(false)}>
+                <List sx={{ width: 220 }}>
+                  {menuItems.map(item => (
+                    item.label === 'Iniciar Sesión' ? (
+                      <ListItem key={item.label} disablePadding sx={{ justifyContent: 'center', py: 2 }}>
+                        <a href={item.href} style={{ width: '100%', textAlign: 'center', textDecoration: 'none' }} onClick={() => setMenuOpen(false)}>
+                          <button style={{
+                            background: '#15b19d',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '0.75rem 1.5rem',
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            cursor: 'pointer',
+                            width: '90%'
+                          }}>
+                            {item.label}
+                          </button>
+                        </a>
+                      </ListItem>
+                    ) : (
+                      <ListItem button key={item.label} component="a" href={item.href} onClick={() => setMenuOpen(false)}>
+                        <ListItemText primary={item.label} />
+                      </ListItem>
+                    )
+                  ))}
+                </List>
+              </Drawer>
+            </div>
+          )}
         </nav>
       </header>
       <section className="landing-hero">
@@ -31,6 +83,32 @@ export default function Landing() {
         <div className="landing-feature">
           <h2>Analítica visual</h2>
           <p>Visualiza métricas clave y reportes de manera intuitiva.</p>
+        </div>
+      </section>
+      {/* Sección Beneficios */}
+      <section id="beneficios" className="landing-benefits" style={{background:'#fafbfb',padding:'3rem 2vw',textAlign:'center'}}>
+        <h3 style={{color:'#15b19d',fontWeight:700,fontSize:'2rem',marginBottom:'2rem'}}>Beneficios de usar Sustenty</h3>
+        <div style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:'2rem'}}>
+          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
+            <span style={{fontSize:'2rem',marginBottom:8}}>🗄️</span>
+            <h4 style={{color:'#15b19d'}}>Centralización de datos ESG</h4>
+            <p>Gestiona toda la información ambiental, social y de gobernanza en un solo lugar, facilitando el acceso y la trazabilidad.</p>
+          </div>
+          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
+            <span style={{fontSize:'2rem',marginBottom:8}}>🛡️</span>
+            <h4 style={{color:'#15b19d'}}>Cumplimiento normativo simplificado</h4>
+            <p>Automatiza reportes y procesos para cumplir con regulaciones y estándares internacionales de sostenibilidad.</p>
+          </div>
+          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
+            <span style={{fontSize:'2rem',marginBottom:8}}>🤝</span>
+            <h4 style={{color:'#15b19d'}}>Colaboración y transparencia</h4>
+            <p>Permite a equipos y consultores trabajar juntos, asignar tareas y compartir avances en tiempo real.</p>
+          </div>
+          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
+            <span style={{fontSize:'2rem',marginBottom:8}}>📊</span>
+            <h4 style={{color:'#15b19d'}}>Analítica y visualización</h4>
+            <p>Obtén insights visuales y reportes automáticos para tomar mejores decisiones y comunicar tu impacto.</p>
+          </div>
         </div>
       </section>
       <section id="clientes" className="landing-clients">
@@ -93,8 +171,32 @@ export default function Landing() {
         <h3>Contacto</h3>
         <ContactForm />
       </section>
-      <footer className="landing-footer">
-        <span>&copy; {new Date().getFullYear()} sustenty.com </span>
+      <footer className="landing-footer" style={{background:'#fafbfb',color:'#222',padding:'2.5rem 0 1.2rem 0',marginTop:'3rem',borderTop:'1px solid #e5e7eb'}}>
+        <div style={{maxWidth:1200,margin:'0 auto',display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'center',gap:'2rem',padding:'0 2vw'}}>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <img src="/logo-full.svg" alt="Sustenty Logo" style={{height:38}} />
+          </div>
+          <nav style={{display:'flex',gap:'2rem',flexWrap:'wrap'}}>
+            <a href="#features" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Características</a>
+            <a href="#beneficios" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Beneficios</a>
+            <a href="#precios" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Precios</a>
+            <a href="#contact" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Contacto</a>
+          </nav>
+          <div style={{display:'flex',gap:'1.2rem'}}>
+            <a href="https://twitter.com/sustenty" target="_blank" rel="noopener noreferrer" aria-label="Twitter" style={{color:'#15b19d',fontSize:'1.05rem',fontWeight:500}}>
+              Twitter
+            </a>
+            <a href="https://linkedin.com/company/sustenty" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style={{color:'#15b19d',fontSize:'1.05rem',fontWeight:500}}>
+              LinkedIn
+            </a>
+            <a href="mailto:hola@sustenty.com" aria-label="Email" style={{color:'#15b19d',fontSize:'1.05rem',fontWeight:500}}>
+              Email
+            </a>
+          </div>
+        </div>
+        <div style={{textAlign:'center',marginTop:'2rem',fontSize:'0.97rem',opacity:0.7}}>
+          &copy; {new Date().getFullYear()} sustenty.com &mdash; Todos los derechos reservados
+        </div>
       </footer>
     </main>
   );

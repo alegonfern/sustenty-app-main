@@ -87,6 +87,14 @@ const menuGroups = [
     ]
   },
   {
+    id: 'agentes-ia',
+    title: 'Agentes IA',
+    type: 'group',
+    children: [
+      { id: 'mis-agentes', text: 'Mis agentes', icon: <Sparkles size={20} />, path: '/app/agentes-ia', type: 'item' }
+    ]
+  },
+  {
     id: 'esg',
     title: 'Esg',
     type: 'group',

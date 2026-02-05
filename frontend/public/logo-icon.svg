@@ -4,24 +4,16 @@
 <svg
    version="1.1"
    id="svg2"
-   width="125.91866"
-   height="118.69598"
-   viewBox="0 0 125.91867 118.69598"
-   sodipodi:docname="Sustenty.ai"
+   width="75.533203"
+   height="71.19989"
+   viewBox="0 0 75.533202 71.199893"
+   sodipodi:docname="Sustenty.eps"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
-     id="defs6">
-    <clipPath
-       clipPathUnits="userSpaceOnUse"
-       id="clipPath20">
-      <path
-         d="M 0,1024 H 1024 V 0 H 0 Z"
-         id="path18" />
-    </clipPath>
-  </defs>
+     id="defs6" />
   <sodipodi:namedview
      id="namedview4"
      pagecolor="#ffffff"
@@ -36,26 +28,59 @@
      id="g10"
      inkscape:groupmode="layer"
      inkscape:label="Page 1"
-     transform="matrix(1.3333333,0,0,-1.3333333,-170.12786,735.49934)">
+     transform="matrix(1.3333333,0,0,-1.3333333,-1422.8517,780.41608)">
     <g
-       id="g14"
-       style="fill:#1a1a1a"
-       inkscape:export-filename="../../../Documents/logo-full.svg"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96">
+       id="g12"
+       transform="scale(0.1)">
+      <path
+         d="M 10240,0 H 0 V 10240 H 10240 V 0"
+         style="fill:#15b19d;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path14" />
+      <path
+         d="m 1972.3,5083.86 c 0,-141.19 -114.46,-255.65 -255.66,-255.65 h -226.21 v 198.55 c 0,141.2 114.47,255.66 255.67,255.66 h 226.2 z m 248.04,432.38 H 1631.4 c -196.31,0 -355.45,-159.14 -355.45,-355.44 v -534.77 h 588.95 c 196.31,0 355.44,159.14 355.44,355.44 v 534.77"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path16" />
       <g
-         id="g16"
-         clip-path="url(#clipPath20)"
-         style="fill:#1a1a1a">
-        <g
-           id="g22"
-           transform="translate(197.2299,508.3865)"
-           style="fill:#1a1a1a">
-          <path
-             d="m 0,0 c 0,-14.12 -11.446,-25.566 -25.566,-25.566 h -22.62 v 19.855 c 0,14.12 11.446,25.567 25.566,25.567 H 0 Z M 24.805,43.238 H -34.09 c -19.631,0 -35.544,-15.914 -35.544,-35.545 v -53.477 h 58.894 c 19.631,0 35.545,15.914 35.545,35.545 z"
-             style="fill:#1a1a1a;fill-opacity:1;fill-rule:nonzero;stroke:none"
-             id="path24" />
-        </g>
+         id="g18"
+         transform="scale(10)">
+        <text
+           xml:space="preserve"
+           transform="matrix(1,0,0,-1,243.437,464.057)"
+           style="font-variant:normal;font-weight:800;font-size:173.711px;font-family:'Rethink Sans';-inkscape-font-specification:RethinkSans-ExtraBold;writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           id="text22"><tspan
+             x="0 81.641609 175.96667 258.64978 313.36893 406.65024 500.97449 557.77716"
+             y="0"
+             sodipodi:role="line"
+             id="tspan20">sustenty</tspan></text>
+      </g>
+      <path
+         d="m 26346.1,0 h -10240 v 10240 h 10240 V 0"
+         style="fill:#256b36;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path24" />
+      <path
+         d="m 22471.3,5190.72 c 0,-784.39 -635.9,-1420.26 -1420.3,-1420.26 h -1256.6 v 1103.02 c 0,784.4 635.9,1420.28 1420.3,1420.28 h 1256.6 z m 1378,2401.99 h -3271.8 c -1090.5,0 -1974.6,-884.07 -1974.6,-1974.61 V 2647.29 h 3271.8 c 1090.5,0 1974.6,884.07 1974.6,1974.61 v 2970.81"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path26" />
+      <path
+         d="m 11089.098,5593.7543 c 0,-84.6938 -68.659,-153.3535 -153.359,-153.3535 h -135.694 v 119.1017 c 0,84.6998 68.666,153.3595 153.366,153.3595 h 135.687 z m 148.789,259.3664 h -353.28 c -117.758,0 -213.219,-95.4613 -213.219,-213.2133 v -320.7858 h 353.286 c 117.758,0 213.213,95.4613 213.213,213.2133 v 320.7858"
+         style="fill:#15b19d;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.599857"
+         id="path16-3"
+         inkscape:export-filename="./logo-ico.svg"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+      <g
+         id="g18-6"
+         transform="matrix(5.9985743,0,0,5.9985743,9905.9997,2544.1632)"
+         style="fill:#15b19d;fill-opacity:1">
+        <text
+           xml:space="preserve"
+           transform="matrix(1,0,0,-1,243.437,464.057)"
+           style="font-variant:normal;font-weight:800;font-size:173.711px;font-family:'Rethink Sans';-inkscape-font-specification:RethinkSans-ExtraBold;writing-mode:lr-tb;fill:#15b19d;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           id="text22-7"><tspan
+             x="0 81.641609 175.96667 258.64978 313.36893 406.65024 500.97449 557.77716"
+             y="0"
+             sodipodi:role="line"
+             id="tspan20-5">sustenty</tspan></text>
       </g>
     </g>
   </g>
