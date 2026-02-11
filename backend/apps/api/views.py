@@ -1173,6 +1173,7 @@ def contact_support(request):
     </body>
     </html>
     """
+    import traceback
     try:
         result = email_service.send_email(
             to_email=support_email,
@@ -1180,9 +1181,23 @@ def contact_support(request):
             html_content=html_content,
             text_content=f"Nuevo mensaje de {name} ({email})\nEmpresa: {company}\n\nAsunto: {subject}\n\nMensaje:\n{message}"
         )
+        if not result.get('success'):
+            logger.error(f"Error enviando email: {result.get('error')}")
+            return Response({
+                'message': 'Error enviando el correo de contacto.',
+                'error': result.get('error'),
+                'success': False
+            }, status=500)
     except Exception as e:
         logger.error(f"Error enviando mensaje de contacto: {e}")
-    # Siempre retornar éxito si el contacto se guarda
+        logger.error(traceback.format_exc())
+        return Response({
+            'message': 'Error interno en el backend.',
+            'error': str(e),
+            'trace': traceback.format_exc(),
+            'success': False
+        }, status=500)
+    # Siempre retornar éxito si el contacto se guarda y el email se envió
     return Response({
         'message': '¡Gracias por contactarnos! Tu información fue recibida correctamente.',
         'success': True

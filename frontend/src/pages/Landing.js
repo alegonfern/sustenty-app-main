@@ -174,21 +174,21 @@ export default function Landing() {
         <div style={{display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap'}}>
           <div className="landing-price-card">
             <div>
-              <span className="landing-price">$0</span>
-              <span className="landing-price-desc">/mes</span>
+                <span className="landing-price">Gratis</span>
+                <span className="landing-price-desc"></span>
             </div>
             <ul>
               <li>Hasta 5 usuarios</li>
               <li>Reportes básicos ESG</li>
               <li>Soporte por email</li>
             </ul>
-            <a href="/register" className="landing-cta">Comenzar gratis</a>
+              <a href="#contact" className="landing-cta">Comenzar gratis</a>
             <div style={{fontWeight:600, color:'#15b19d', marginTop:'0.5rem'}}>Gratuito</div>
           </div>
           <div className="landing-price-card">
             <div>
-              <span className="landing-price">$49</span>
-              <span className="landing-price-desc">/mes</span>
+                <span className="landing-price">Cotizar</span>
+                <span className="landing-price-desc"></span>
             </div>
             <ul>
               <li>Usuarios ilimitados</li>
@@ -196,13 +196,13 @@ export default function Landing() {
               <li>Integraciones y API</li>
               <li>Soporte prioritario</li>
             </ul>
-            <a href="/register" className="landing-cta">Solicitar demo</a>
+              <a href="#contact" className="landing-cta">Solicitar demo</a>
             <div style={{fontWeight:600, color:'#15b19d', marginTop:'0.5rem'}}>Plan Empresa</div>
           </div>
           <div className="landing-price-card">
             <div>
-              <span className="landing-price">$99</span>
-              <span className="landing-price-desc">/mes</span>
+                <span className="landing-price">Cotizar</span>
+                <span className="landing-price-desc"></span>
             </div>
             <ul>
               <li>Acceso a múltiples empresas</li>
@@ -210,7 +210,7 @@ export default function Landing() {
               <li>Herramientas para consultores</li>
               <li>Soporte dedicado</li>
             </ul>
-            <a href="/register" className="landing-cta">Contactar ventas</a>
+              <a href="#contact" className="landing-cta">Contactar ventas</a>
             <div style={{fontWeight:600, color:'#15b19d', marginTop:'0.5rem'}}>Plan Consultor</div>
           </div>
         </div>
@@ -312,30 +312,53 @@ function ContactDemoForm() {
   const [exito, setExito] = React.useState(false);
   const [error, setError] = React.useState('');
 
+  // Validación simple
+  const validate = () => {
+    if (!form.name || !form.email || !form.company || !form.role || !form.message) {
+      setError('Todos los campos son obligatorios.');
+      return false;
+    }
+    // Validación de email
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+      setError('Correo electrónico inválido.');
+      return false;
+    }
+    return true;
+  };
+
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setEnviando(true);
     setError('');
     setExito(false);
+    if (!validate()) return;
+    setEnviando(true);
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
-      const data = await res.json();
-      if (data.success) {
+      const axios = await import('axios');
+      const payload = {
+        name: form.name,
+        email: form.email,
+        company: form.company,
+        subject: form.subject || 'Solicitud de demo',
+        message: `${form.role ? 'Rol: ' + form.role + '\n' : ''}${form.message}`
+      };
+      const API_URL = process.env.REACT_APP_API_URL || '';
+      const res = await axios.default.post(`${API_URL}/api/v1/contact/`, payload);
+      if (res.data && res.data.success) {
         setExito(true);
         setForm({ name: '', email: '', company: '', role: '', message: '', subject: 'Solicitud de demo' });
       } else {
-        setError(data.message || 'No se pudo enviar el mensaje.');
+        setError(res.data.message || 'No se pudo enviar el mensaje.');
       }
-    } catch {
-      setError('Error de red.');
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setError(err.response.data.message || err.response.data.error || 'Error en el servidor.');
+      } else {
+        setError('Error de red o proxy.');
+      }
     }
     setEnviando(false);
   };
