@@ -23,6 +23,7 @@ import SaasLanding from './pages/SaasLanding';
 import Landing from './pages/Landing';
 
 import Register from './pages/Register';
+import MisAgentes from './pages/MisAgentes';
 
 
 // Compliance Module
@@ -73,6 +74,8 @@ function App() {
         <Route path="esg/scopes" element={<Scopes />} />
         <Route path="esg/periods" element={<Periods />} />
         <Route path="esg/config" element={<ESGConfig />} />
+        <Route path="agentes-ia" element={<MisAgentes />} />
+    
         {/* Compliance Routes */}
         <Route path="compliance" element={<ComplianceDashboard />} />
         <Route path="compliance/dashboard" element={<ComplianceDashboard />} />

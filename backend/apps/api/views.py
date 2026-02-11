@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -10,6 +13,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Organization, Notification
+from .models_contact import Contact
 from .serializers import OrganizationSerializer, OrganizationCreateSerializer, NotificationSerializer
 
 
@@ -1112,26 +1116,25 @@ def billing_history(request):
 def contact_support(request):
     """
     Endpoint para el formulario de contacto/ayuda
-    Envía un email al equipo de soporte con el mensaje del usuario
+    Envía un email al equipo de soporte con el mensaje del usuario y guarda el contacto en la base de datos
     """
     from .email_service import email_service
     from django.conf import settings
-    
     name = request.data.get('name')
     email = request.data.get('email')
     subject = request.data.get('subject')
     message = request.data.get('message')
-    
+    company = request.data.get('company')
     # Validar campos requeridos
-    if not all([name, email, subject, message]):
+    if not all([name, email, subject, message, company]):
         return Response(
             {'error': 'Todos los campos son requeridos'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+    # Guardar contacto en la base de datos
+    Contact.objects.create(name=name, email=email, company=company, subject=subject, message=message)
     # Preparar email para el equipo de soporte
-    support_email = settings.config('SUPPORT_EMAIL', default='soporte@sustenty.io')
-    
+    support_email = 'alexis@sustenty.com'
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -1151,19 +1154,17 @@ def contact_support(request):
             <div class="header">
                 <h2>📧 Nuevo Mensaje de Contacto</h2>
             </div>
-            
             <div class="content">
                 <div class="info-box">
                     <p><strong>Nombre:</strong> {name}</p>
                     <p><strong>Email:</strong> {email}</p>
+                    <p><strong>Empresa:</strong> {company}</p>
                     <p><strong>Asunto:</strong> {subject}</p>
                 </div>
-                
                 <div class="message-box">
                     <h3>Mensaje:</h3>
                     <p>{message}</p>
                 </div>
-                
                 <p style="color: #666; font-size: 12px; margin-top: 20px;">
                     💡 Responder a: <a href="mailto:{email}">{email}</a>
                 </p>
@@ -1172,73 +1173,35 @@ def contact_support(request):
     </body>
     </html>
     """
-    
-    # Enviar email al equipo de soporte
+    import traceback
     try:
         result = email_service.send_email(
             to_email=support_email,
             subject=f"[Contacto] {subject}",
             html_content=html_content,
-            text_content=f"Nuevo mensaje de {name} ({email})\n\nAsunto: {subject}\n\nMensaje:\n{message}"
+            text_content=f"Nuevo mensaje de {name} ({email})\nEmpresa: {company}\n\nAsunto: {subject}\n\nMensaje:\n{message}"
         )
-        
-        # También enviar confirmación al usuario
-        confirmation_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header {{ background: #80cfc5; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-                .content {{ background: #f9f9f9; padding: 30px; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>✅ Mensaje Recibido</h1>
-                </div>
-                
-                <div class="content">
-                    <p>Hola {name},</p>
-                    <p>Hemos recibido tu mensaje y te responderemos lo antes posible (generalmente en menos de 24 horas).</p>
-                    <p><strong>Tu mensaje:</strong></p>
-                    <p style="background: white; padding: 15px; border-left: 4px solid #80cfc5;">
-                        {message[:200]}{'...' if len(message) > 200 else ''}
-                    </p>
-                    <p>Mientras tanto, puedes:</p>
-                    <ul>
-                        <li>Revisar nuestro <a href="{settings.FRONTEND_URL}/ayuda">Centro de Ayuda</a></li>
-                        <li>Contactarnos por WhatsApp al +56 9 1234 5678</li>
-                        <li>Explorar nuestra <a href="{settings.FRONTEND_URL}/api/docs">documentación</a></li>
-                    </ul>
-                    <p>¡Gracias por ser parte de Sustenty! 🌱</p>
-                    <p>El equipo de Sustenty</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-        email_service.send_email(
-            to_email=email,
-            subject="Hemos recibido tu mensaje - Sustenty",
-            html_content=confirmation_html
-        )
-        
-        return Response({
-            'message': 'Mensaje enviado correctamente. Te responderemos pronto.',
-            'success': True
-        })
-        
+        if not result.get('success'):
+            logger.error(f"Error enviando email: {result.get('error')}")
+            return Response({
+                'message': 'Error enviando el correo de contacto.',
+                'error': result.get('error'),
+                'success': False
+            }, status=500)
     except Exception as e:
         logger.error(f"Error enviando mensaje de contacto: {e}")
+        logger.error(traceback.format_exc())
         return Response({
-            'message': 'Mensaje recibido. Te contactaremos pronto.',
-            'success': True  # Siempre retornar success para el usuario
-        })
+            'message': 'Error interno en el backend.',
+            'error': str(e),
+            'trace': traceback.format_exc(),
+            'success': False
+        }, status=500)
+    # Siempre retornar éxito si el contacto se guarda y el email se envió
+    return Response({
+        'message': '¡Gracias por contactarnos! Tu información fue recibida correctamente.',
+        'success': True
+    })
 
 
 # =============================================================================
