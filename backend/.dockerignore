@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.*
+.git
+.gitignore
+*.md
+media/avatars/*
+staticfiles/
+venv/
+.venv/

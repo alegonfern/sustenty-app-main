@@ -74,7 +74,7 @@ build/
 .eslintcache
 
 # Docker
-.dockerignore
+# .dockerignore files son necesarios en el repo para builds en VPS
 
 # Testing
 coverage/
