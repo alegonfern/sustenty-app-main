@@ -47,6 +47,10 @@ staticfiles/
 .env.production.local
 .env.prod
 
+# SSL certificates
+nginx/ssl/*.pem
+nginx/ssl/*.key
+
 # IDEs
 .vscode/
 .idea/

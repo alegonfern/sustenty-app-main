@@ -12,6 +12,10 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# Confiar en el header X-Forwarded-Proto de Cloudflare/Nginx
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -143,12 +147,21 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://192.168.5.45:3000",
     "http://app.sustenty.local:3000",
 ]
+
+# Agregar orígenes HTTPS en producción
+if not DEBUG:
+    CORS_ALLOWED_ORIGINS += [
+        "https://sustenty.com",
+        "https://www.sustenty.com",
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -189,13 +202,11 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
 
-# Frontend URL
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+# Frontend URL (ya definido arriba desde CORS settings)
 
-# Forzar uso de localhost para OAuth (desarrollo)
-USE_X_FORWARDED_HOST = False
+# OAuth host handling (Cloudflare proxy compatible)
 
 # Google OAuth2 Configuration
 GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='')
@@ -218,12 +229,25 @@ LOGIN_REDIRECT_URL = '/api/v1/auth/google/callback/'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
-# Configuración básica de sesiones para desarrollo
+# Configuración de sesiones y CSRF
 SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:8000']
+
+if not DEBUG:
+    # Producción: cookies seguras (HTTPS via Cloudflare)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_TRUSTED_ORIGINS = [
+        'https://sustenty.com',
+        'https://www.sustenty.com',
+    ]
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+else:
+    # Desarrollo: sin HTTPS
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:8000']
 
 # Rest Auth Configuration
 REST_AUTH = {
