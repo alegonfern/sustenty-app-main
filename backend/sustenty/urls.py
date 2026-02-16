@@ -8,6 +8,7 @@ from apps.api.oauth_views import SocialAuthenticationErrorView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('apps.api.urls')),
+    path('api/v1/carbon/', include('apps.carbon.urls')),
     path('api/v1/esg/', include('apps.esg.urls')),
     path('api/v1/team/', include('apps.team.urls')),
     path('api/v1/compliance/', include('apps.compliance.urls')),

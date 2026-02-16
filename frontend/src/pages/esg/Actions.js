@@ -58,14 +58,14 @@ const Actions = () => {
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [metrics, setMetrics] = useState([]);
-    // Cargar métricas ESG
-    const fetchMetrics = async () => {
+  const [categories, setCategories] = useState([]);
+    // Cargar categorías ESG
+    const fetchCategories = async () => {
       try {
-        const res = await api.getESGMetrics();
-        setMetrics(res.data);
+        const res = await api.getESGCategories();
+        setCategories(Array.isArray(res.data) ? res.data : res.data.results || []);
       } catch (e) {
-        setMetrics([]);
+        setCategories([]);
       }
     };
   const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm();
@@ -75,7 +75,7 @@ const Actions = () => {
     fetchActions();
     fetchOrganizations();
     fetchCurrentUser();
-    fetchMetrics();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -155,7 +155,6 @@ const Actions = () => {
     reset({ ...action });
     setValue('responsible', action.responsible || null);
     setValue('team_members', action.team_members || []);
-    setValue('metric', action.metric || null);
     setValue('expected_impact', action.expected_impact || '');
     setValue('actual_result', action.actual_result || '');
     // Buscar la organización de la acción
@@ -171,7 +170,6 @@ const Actions = () => {
       ...data,
       responsible: data.responsible ? data.responsible.id : null,
       team_members: (data.team_members || []).map(u => u.id),
-      metric: data.metric || null,
       expected_impact: data.expected_impact || '',
       actual_result: data.actual_result || '',
     };
@@ -342,7 +340,6 @@ const Actions = () => {
               <TableRow>
                 <TableCell><strong>Acción</strong></TableCell>
                 <TableCell><strong>Categoría</strong></TableCell>
-                <TableCell><strong>Métrica</strong></TableCell>
                 <TableCell><strong>Impacto Esperado</strong></TableCell>
                 <TableCell><strong>Resultado Real</strong></TableCell>
                 <TableCell><strong>Prioridad</strong></TableCell>
@@ -371,9 +368,6 @@ const Actions = () => {
                         size="small"
                         variant="outlined"
                       />
-                    </TableCell>
-                    <TableCell>
-                      {action.metric_detail?.name || '-'}
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
@@ -518,19 +512,17 @@ const Actions = () => {
               <TextField label="Fecha de Fin" type="date" {...register('end_date')} fullWidth InputLabelProps={{ shrink: true }} />
               <TextField label="Presupuesto" type="number" {...register('budget')} fullWidth />
               <TextField
-                label="Métrica Asociada*"
+                label="Categoría ESG"
                 select
-                {...register('metric', { required: true })}
+                {...register('category')}
                 fullWidth
-                error={!Array.isArray(metrics) && !metrics ? true : !metrics || !metrics.length ? true : !watch('metric')}
-                helperText={Array.isArray(metrics) || metrics ? (!metrics || !metrics.length ? 'No hay métricas disponibles' : (!watch('metric') ? 'Selecciona una métrica' : '')) : 'Error cargando métricas'}
               >
                 <MenuItem value="">Ninguna</MenuItem>
-                {Array.isArray(metrics) ? metrics.map(metric => (
-                  <MenuItem key={metric.id} value={metric.id}>
-                    {metric.name}
+                {categories.map(cat => (
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.name}
                   </MenuItem>
-                )) : null}
+                ))}
               </TextField>
             </Stack>
           </DialogContent>

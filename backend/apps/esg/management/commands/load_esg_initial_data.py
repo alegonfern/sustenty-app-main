@@ -1,13 +1,13 @@
 from django.core.management.base import BaseCommand
-from apps.esg.models import ESGCategory, ESGComplianceStandard, ESGScope
+from apps.esg.models import ESGCategory, ESGComplianceStandard
 
 
 class Command(BaseCommand):
-    help = 'Carga datos iniciales para el módulo ESG'
+    help = 'Carga datos iniciales para el módulo ESG (categorías y estándares)'
 
     def handle(self, *args, **kwargs):
         self.stdout.write('Creando categorías ESG...')
-        
+
         # Crear categorías ESG
         categories = [
             {
@@ -32,52 +32,16 @@ class Command(BaseCommand):
                 'color': 'warning'
             }
         ]
-        
-        created_categories = {}
+
         for cat_data in categories:
             category, created = ESGCategory.objects.get_or_create(
                 code=cat_data['code'],
                 defaults=cat_data
             )
-            created_categories[cat_data['code']] = category
             if created:
                 self.stdout.write(self.style.SUCCESS(f'  ✓ Creada categoría: {category.name}'))
             else:
                 self.stdout.write(f'  - Categoría ya existe: {category.name}')
-
-        # Crear Scopes/Orígenes para categoría Ambiental
-        self.stdout.write('\nCreando Scopes/Orígenes...')
-        
-        scopes = [
-            {
-                'name': 'Scope 1 - Emisiones Directas',
-                'code': 'scope_1',
-                'description': 'Emisiones directas de fuentes controladas o poseídas por la organización',
-                'category': created_categories['environmental']
-            },
-            {
-                'name': 'Scope 2 - Emisiones Indirectas de Energía',
-                'code': 'scope_2',
-                'description': 'Emisiones indirectas de la generación de energía comprada',
-                'category': created_categories['environmental']
-            },
-            {
-                'name': 'Scope 3 - Otras Emisiones Indirectas',
-                'code': 'scope_3',
-                'description': 'Otras emisiones indirectas que ocurren en la cadena de valor',
-                'category': created_categories['environmental']
-            }
-        ]
-        
-        for scope_data in scopes:
-            scope, created = ESGScope.objects.get_or_create(
-                code=scope_data['code'],
-                defaults=scope_data
-            )
-            if created:
-                self.stdout.write(self.style.SUCCESS(f'  ✓ Creado scope: {scope.name}'))
-            else:
-                self.stdout.write(f'  - Scope ya existe: {scope.name}')
 
         # Crear estándares de cumplimiento
         self.stdout.write('\nCreando estándares de cumplimiento...')

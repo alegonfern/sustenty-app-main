@@ -531,7 +531,8 @@ def get_sustentia_insight(request):
     import os
     from groq import Groq
     from django.core.cache import cache
-    from apps.esg.models import ESGDataCollection, ESGGoal, ESGAction
+    from apps.carbon.models import CarbonDataEntry
+    from apps.esg.models import ESGGoal, ESGAction
     from datetime import datetime, timedelta
     
     # Verificar si se debe forzar regeneración
@@ -548,8 +549,8 @@ def get_sustentia_insight(request):
         # Recopilar datos del usuario
         organizations = Organization.objects.filter(user=request.user)
         
-        # Estadísticas ESG - solo contar registros totales
-        total_emissions = ESGDataCollection.objects.filter(
+        # Estadísticas de emisiones
+        total_emissions = CarbonDataEntry.objects.filter(
             organization__in=organizations
         ).count()
         
@@ -681,7 +682,8 @@ def get_sustentia_insights(request):
     import os
     from groq import Groq
     from django.core.cache import cache
-    from apps.esg.models import ESGDataCollection, ESGGoal, ESGAction
+    from apps.carbon.models import CarbonDataEntry
+    from apps.esg.models import ESGGoal, ESGAction
     from datetime import datetime, timedelta
     
     # Verificar si se debe forzar regeneración
@@ -698,8 +700,8 @@ def get_sustentia_insights(request):
         # Recopilar datos del usuario
         organizations = Organization.objects.filter(user=request.user)
         
-        # Estadísticas ESG
-        total_emissions = ESGDataCollection.objects.filter(
+        # Estadísticas de emisiones
+        total_emissions = CarbonDataEntry.objects.filter(
             organization__in=organizations
         ).count()
         
@@ -1038,7 +1040,7 @@ def usage_stats(request):
     """
     Retorna estadísticas de uso del plan actual
     """
-    from apps.esg.models import Emission
+    from apps.carbon.models import CarbonDataEntry
     from apps.compliance.models import Document
     
     user = request.user
@@ -1053,7 +1055,7 @@ def usage_stats(request):
         documents_count = 0
     
     try:
-        emissions_count = Emission.objects.filter(organization_id=org_id).count() if org_id else 0
+        emissions_count = CarbonDataEntry.objects.filter(organization_id=org_id).count() if org_id else 0
     except:
         emissions_count = 0
     
@@ -1258,7 +1260,8 @@ def create_sample_notifications(request):
     return Response({'detail': 'Notificaciones de ejemplo creadas.'})
 
 from datetime import date, timedelta
-from apps.esg.models import ESGAction, ESGDataCollection
+from apps.esg.models import ESGAction
+from apps.carbon.models import CarbonDataEntry
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -1266,7 +1269,7 @@ def generate_auto_notifications(request):
     """
     Genera notificaciones automáticas para el usuario autenticado:
     - Acciones ESG próximas a vencer (dentro de 3 días)
-    - Métricas ESG pendientes de carga para el mes actual
+    - Registros de emisiones pendientes de carga para el mes actual
     """
     user = request.user
     today = date.today()
@@ -1287,22 +1290,22 @@ def generate_auto_notifications(request):
             reinforced_by_email=True,
             read=False
         )
-    # Métricas pendientes de carga
+    # Registros de emisiones pendientes de carga
     current_month = today.month
     current_year = today.year
-    metrics_pending = ESGDataCollection.objects.filter(
+    entries_pending = CarbonDataEntry.objects.filter(
         responsible=user,
         status='pending',
         collection_date__year=current_year,
         collection_date__month=current_month
     )
-    for metric in metrics_pending:
+    for entry in entries_pending:
         Notification.objects.get_or_create(
             user=user,
             notif_type='reminder',
-            title=f'Métrica pendiente: {metric.metric.name}',
-            message=f'Falta cargar la métrica "{metric.metric.name}" para el período {metric.period.name}.',
-            url=f'/metricas/{metric.id}',
+            title=f'Registro pendiente: {entry.factor.name}',
+            message=f'Falta cargar el registro "{entry.factor.name}" para el período {entry.period.name}.',
+            url=f'/carbon/data/{entry.id}',
             reinforced_by_email=False,
             read=False
         )

@@ -45,6 +45,7 @@ staticfiles/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
 
 # IDEs
 .vscode/
@@ -86,3 +87,4 @@ coverage/
 # Design template de referencia
 design-template/
 backups/backup_20260106_171523.sql
+.env_bk

@@ -107,10 +107,10 @@ const loadESGMetrics = async (setEsgData, setLoading, setError) => {
   try {
     setLoading(true);
     const [dataRes, factorsRes, scopesRes, periodsRes, goalsRes, actionsRes] = await Promise.all([
-      api.getESGDataCollection(),
-      api.getESGMetrics(),
-      api.getESGScopes(),
-      api.getESGPeriods(),
+      api.getCarbonData(),
+      api.getCarbonFactors(),
+      api.getCarbonScopes(),
+      api.getCarbonPeriods(),
       api.getESGGoals(),
       api.getESGActions()
     ]);
@@ -122,14 +122,14 @@ const loadESGMetrics = async (setEsgData, setLoading, setError) => {
     const actions = Array.isArray(actionsRes.data) ? actionsRes.data : actionsRes.data.results || [];
     const totalEmissions = dataCollection.reduce((sum, record) => sum + (parseFloat(record.calculated_emission) || 0), 0);
     const scopeData = {
-      scope1: dataCollection.filter(d => d.metric_detail?.scope_detail?.code === 'scope_1').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
-      scope2: dataCollection.filter(d => d.metric_detail?.scope_detail?.code === 'scope_2').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
-      scope3: dataCollection.filter(d => d.metric_detail?.scope_detail?.code === 'scope_3').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0)
+      scope1: dataCollection.filter(d => d.factor_detail?.scope_detail?.code === 'scope_1').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
+      scope2: dataCollection.filter(d => d.factor_detail?.scope_detail?.code === 'scope_2').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0),
+      scope3: dataCollection.filter(d => d.factor_detail?.scope_detail?.code === 'scope_3').reduce((sum, r) => sum + (parseFloat(r.calculated_emission) || 0), 0)
     };
     const categoryCounts = {
-      environmental: dataCollection.filter(d => d.metric_detail?.category_detail?.code === 'environmental').length,
-      social: dataCollection.filter(d => d.metric_detail?.category_detail?.code === 'social').length,
-      governance: dataCollection.filter(d => d.metric_detail?.category_detail?.code === 'governance').length
+      scope1: dataCollection.filter(d => d.factor_detail?.scope_detail?.code === 'scope_1').length,
+      scope2: dataCollection.filter(d => d.factor_detail?.scope_detail?.code === 'scope_2').length,
+      scope3: dataCollection.filter(d => d.factor_detail?.scope_detail?.code === 'scope_3').length
     };
     const completedRecords = dataCollection.filter(d => d.status === 'completed').length;
     const pendingRecords = dataCollection.filter(d => d.status === 'pending').length;

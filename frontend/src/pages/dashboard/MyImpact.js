@@ -13,16 +13,16 @@ export default function MyImpact() {
       setLoading(true);
       try {
         // Simulación: reemplazar por endpoint real de resumen de impacto
-        const [actionsRes, metricsRes] = await Promise.all([
+        const [actionsRes, carbonDataRes] = await Promise.all([
           api.getESGActions(),
-          api.getESGMetrics()
+          api.getCarbonData()
         ]);
         const actions = Array.isArray(actionsRes.data) ? actionsRes.data : actionsRes.data.results || [];
-        const metrics = Array.isArray(metricsRes.data) ? metricsRes.data : metricsRes.data.results || [];
+        const carbonData = Array.isArray(carbonDataRes.data) ? carbonDataRes.data : carbonDataRes.data.results || [];
         const completed = actions.filter(a => a.status === 'completed').length;
         const total = actions.length;
-        // Simulación de reducción de emisiones
-        const emissionReduction = metrics.reduce((acc, m) => acc + (m.reduction || 0), 0);
+        // Calcular emisiones totales desde datos de carbono
+        const emissionReduction = carbonData.reduce((acc, d) => acc + (parseFloat(d.calculated_emission) || 0), 0);
         setImpact({
           completed,
           total,

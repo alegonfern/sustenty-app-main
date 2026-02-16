@@ -56,13 +56,13 @@ class Command(BaseCommand):
                 
                 # Intentar obtener datos reales si los modelos existen
                 try:
-                    from apps.esg.models import Emission
+                    from apps.carbon.models import CarbonDataEntry
                     from apps.compliance.models import Document
                     
-                    emissions_count = Emission.objects.filter(
+                    emissions_count = CarbonDataEntry.objects.filter(
                         organization__in=user_orgs,
-                        date__gte=week_start,
-                        date__lte=week_end
+                        collection_date__gte=week_start,
+                        collection_date__lte=week_end
                     ).count()
                     
                     documents_uploaded = Document.objects.filter(
