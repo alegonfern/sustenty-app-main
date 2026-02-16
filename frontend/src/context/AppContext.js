@@ -94,7 +94,7 @@ export const AppProvider = ({ children }) => {
 
   const loadPeriods = async () => {
     try {
-      const periodsResponse = await api.getESGPeriods();
+      const periodsResponse = await api.getCarbonPeriods();
       const periodsData = Array.isArray(periodsResponse.data)
         ? periodsResponse.data
         : periodsResponse.data.results || [];

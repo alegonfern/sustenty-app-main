@@ -12,13 +12,12 @@ import Help from './pages/Help';
 import Organizations from './pages/Organizations';
 import Teams from './pages/Teams';
 import TeamMembers from './pages/TeamMembers';
-import Collection from './pages/esg/Collection';
+import ESGOverview from './pages/esg/Overview';
 import Analytics from './pages/esg/Analytics';
 import Actions from './pages/esg/Actions';
-import EmissionFactors from './pages/esg/EmissionFactors';
-import Scopes from './pages/esg/Scopes';
-import Periods from './pages/esg/Periods';
-import ESGConfig from './pages/esg/Config';
+import CarbonCollection from './pages/carbon/Collection';
+import CarbonAnalytics from './pages/carbon/Analytics';
+import CarbonConfig from './pages/carbon/Config';
 import SaasLanding from './pages/SaasLanding';
 import Landing from './pages/Landing';
 
@@ -67,13 +66,12 @@ function App() {
         <Route path="discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
         <Route path="profile" element={<Profile />} />
         <Route path="organizations" element={<Organizations />} />
-        <Route path="esg/collection" element={<Collection />} />
+        <Route path="esg/overview" element={<ESGOverview />} />
         <Route path="esg/analytics" element={<Analytics />} />
         <Route path="esg/actions" element={<Actions />} />
-        <Route path="esg/emission-factors" element={<EmissionFactors />} />
-        <Route path="esg/scopes" element={<Scopes />} />
-        <Route path="esg/periods" element={<Periods />} />
-        <Route path="esg/config" element={<ESGConfig />} />
+        <Route path="carbon/collection" element={<CarbonCollection />} />
+        <Route path="carbon/analytics" element={<CarbonAnalytics />} />
+        <Route path="carbon/config" element={<CarbonConfig />} />
         <Route path="agentes-ia" element={<MisAgentes />} />
     
         {/* Compliance Routes */}

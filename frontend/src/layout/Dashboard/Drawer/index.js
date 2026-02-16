@@ -95,14 +95,23 @@ const menuGroups = [
     ]
   },
   {
-    id: 'esg',
-    title: 'Esg',
+    id: 'carbon',
+    title: 'Huella de Carbono',
     type: 'group',
     children: [
-      { id: 'esg-collection', text: 'Colección', icon: <Database size={20} />, path: '/app/esg/collection', type: 'item' },
-      { id: 'esg-analytics', text: 'Analítica', icon: <BarChart3 size={20} />, path: '/app/esg/analytics', type: 'item' },
+      { id: 'carbon-collection', text: 'Registro', icon: <Database size={20} />, path: '/app/carbon/collection', type: 'item' },
+      { id: 'carbon-analytics', text: 'Analítica', icon: <BarChart3 size={20} />, path: '/app/carbon/analytics', type: 'item' },
+      { id: 'carbon-config', text: 'Configuración', icon: <Settings size={20} />, path: '/app/carbon/config', type: 'item' }
+    ]
+  },
+  {
+    id: 'esg',
+    title: 'ESG',
+    type: 'group',
+    children: [
+      { id: 'esg-overview', text: 'Marco ESG', icon: <BarChart3 size={20} />, path: '/app/esg/overview', type: 'item' },
       { id: 'esg-actions', text: 'Acciones', icon: <ListChecks size={20} />, path: '/app/esg/actions', type: 'item' },
-      { id: 'esg-config', text: 'Configuración', icon: <Settings size={20} />, path: '/app/esg/config', type: 'item' }
+      { id: 'esg-analytics', text: 'Analítica', icon: <LineChart size={20} />, path: '/app/esg/analytics', type: 'item' }
     ]
   },
   {

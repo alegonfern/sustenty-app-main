@@ -88,13 +88,17 @@ export const api = {
   updateOrganization: (id, data) => apiClient.put(`/organizations/${id}/`, data),
   deleteOrganization: (id) => apiClient.delete(`/organizations/${id}/`),
 
-  // ESG Data
-  getESGDataCollection: () => apiClient.get('/esg/data-collection/'),
-  getESGMetrics: () => apiClient.get('/esg/metrics/'),
-  getESGScopes: () => apiClient.get('/esg/scopes/'),
-  getESGPeriods: () => apiClient.get('/esg/periods/'),
+  // ESG - Marco Estratégico
+  getESGCategories: () => apiClient.get('/esg/categories/'),
   getESGGoals: () => apiClient.get('/esg/goals/'),
   getESGActions: () => apiClient.get('/esg/actions/'),
+  getESGComplianceStandards: () => apiClient.get('/esg/compliance-standards/'),
+
+  // Carbon - Huella de Carbono
+  getCarbonPeriods: () => apiClient.get('/carbon/periods/'),
+  getCarbonScopes: () => apiClient.get('/carbon/scopes/'),
+  getCarbonFactors: () => apiClient.get('/carbon/factors/'),
+  getCarbonData: () => apiClient.get('/carbon/data/'),
 
   // SustentIA
   getSustentIAInsight: (force = false) => apiClient.get(`/sustentia/insight/${force ? '?force=true' : ''}`),

@@ -130,7 +130,7 @@ export default function ContextSelector() {
       <Tooltip title="Gestionar períodos">
         <IconButton
           size="small"
-          onClick={() => navigate('/esg/periods')}
+          onClick={() => navigate('/app/carbon/config')}
           color="primary"
           disabled={!selectedOrganization}
         >

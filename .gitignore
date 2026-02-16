@@ -45,6 +45,7 @@ staticfiles/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
 
 # IDEs
 .vscode/
@@ -73,7 +74,7 @@ build/
 .eslintcache
 
 # Docker
-.dockerignore
+# .dockerignore files son necesarios en el repo para builds en VPS
 
 # Testing
 coverage/
@@ -86,3 +87,4 @@ coverage/
 # Design template de referencia
 design-template/
 backups/backup_20260106_171523.sql
+.env_bk

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'apps.api',
+    'apps.carbon',
     'apps.esg',
     'apps.team',
     'apps.compliance',
