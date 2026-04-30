@@ -11,6 +11,7 @@ from .models import (
     ComplianceFramework,
     ComplianceRequirement,
     ComplianceDocument,
+    InvoiceEmissionMapping,
     ComplianceAnalysis,
     ComplianceGap,
     ComplianceReport
@@ -21,6 +22,7 @@ from .serializers import (
     ComplianceRequirementNestedSerializer,
     ComplianceDocumentSerializer,
     ComplianceDocumentUploadSerializer,
+    InvoiceEmissionMappingSerializer,
     ComplianceAnalysisSerializer,
     ComplianceAnalysisDetailSerializer,
     ComplianceAnalysisCreateSerializer,
@@ -28,9 +30,39 @@ from .serializers import (
     ComplianceReportSerializer,
     ComplianceReportCreateSerializer,
 )
-from .services import ComplianceAnalyzerService, DocumentExtractorService
+from .services import ComplianceAnalyzerService, DocumentExtractorService, InvoiceCarbonProcessorService
 
 logger = logging.getLogger(__name__)
+
+
+class InvoiceEmissionMappingViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para configurar mapeos de categorías de factura a factores de emisión.
+    """
+    serializer_class = InvoiceEmissionMappingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = InvoiceEmissionMapping.objects.filter(
+            organization__user=self.request.user
+        ).select_related('organization', 'emission_factor')
+
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+
+        is_active = self.request.query_params.get('is_active')
+        if is_active in ['true', 'false']:
+            queryset = queryset.filter(is_active=(is_active == 'true'))
+
+        return queryset
+
+    def perform_create(self, serializer):
+        from apps.api.models import Organization
+        org = Organization.objects.filter(user=self.request.user).first()
+        if not org:
+            raise serializers.ValidationError({"detail": "Debe tener una organización"})
+        serializer.save(organization=org)
 
 
 class ComplianceFrameworkViewSet(viewsets.ModelViewSet):
@@ -84,6 +116,47 @@ class ComplianceRequirementViewSet(viewsets.ModelViewSet):
 
 
 class ComplianceDocumentViewSet(viewsets.ModelViewSet):
+        @action(detail=True, methods=['post'])
+        def analyze_ia(self, request, pk=None):
+            """Analiza el documento con IA: clasificación y resumen ejecutivo usando OpenAI"""
+            document = self.get_object()
+            if not document.extracted_text:
+                return Response({'error': 'El documento no tiene texto extraído'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Clasificación IA
+            extractor = DocumentExtractorService()
+            tipo = extractor.classify_document_type_ia(document.extracted_text)
+
+            # Resumen ejecutivo IA
+            resumen = None
+            openai_api_key = getattr(settings, 'OPENAI_API_KEY', os.environ.get('OPENAI_API_KEY'))
+            if openai_api_key:
+                try:
+                    import openai
+                    openai.api_key = openai_api_key
+                    prompt = (
+                        f"""Eres un asistente experto en ESG, compliance y sostenibilidad. Resume el siguiente documento en máximo 120 palabras, resaltando los puntos clave, riesgos y oportunidades para la organización. Responde solo el resumen, sin introducción ni despedida.\n\nDOCUMENTO:\n{text}"""
+                    )
+                    response = openai.Completion.create(
+                        engine='gpt-3.5-turbo-instruct',
+                        prompt=prompt.replace('{text}', document.extracted_text[:2000]),
+                        max_tokens=180,
+                        temperature=0.2
+                    )
+                    resumen = response.choices[0].text.strip()
+                except Exception as e:
+                    logger.error(f"Error generando resumen IA: {e}")
+                    resumen = None
+
+            return Response({
+                'document_id': document.id,
+                'document_type_ia': tipo,
+                'executive_summary_ia': resumen,
+                'text_length': len(document.extracted_text),
+            })
+
+
+class ComplianceDocumentViewSet(viewsets.ModelViewSet):
     """
     ViewSet para gestionar documentos de cumplimiento
     """
@@ -101,9 +174,9 @@ class ComplianceDocumentViewSet(viewsets.ModelViewSet):
             return ComplianceDocumentUploadSerializer
         return ComplianceDocumentSerializer
 
+
     def create(self, request, *args, **kwargs):
         # Verificar organización antes de procesar
-        from apps.api.models import Organization
         org = Organization.objects.filter(user=request.user).first()
         if not org:
             return Response(
@@ -117,22 +190,19 @@ class ComplianceDocumentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Obtener organización del usuario
-        from apps.api.models import Organization
         org = Organization.objects.filter(user=self.request.user).first()
-        
         # Ya se verificó en create(), pero por seguridad
         if not org:
             raise serializers.ValidationError({"detail": "Debe tener una organización para subir documentos"})
-        
         doc = serializer.save(
             organization=org,
             uploaded_by=self.request.user
         )
-        
         # Iniciar extracción de texto en background
         try:
             extractor = DocumentExtractorService()
             extractor.extract_text_async(doc.id)
+
         except Exception as e:
             logger.error(f"Error iniciando extracción: {e}")
 
@@ -140,16 +210,13 @@ class ComplianceDocumentViewSet(viewsets.ModelViewSet):
     def extract_text(self, request, pk=None):
         """Extraer texto de un documento manualmente"""
         document = self.get_object()
-        
         try:
             extractor = DocumentExtractorService()
             text = extractor.extract_text(document)
-            
             document.extracted_text = text
             document.extraction_date = timezone.now()
             document.analysis_status = 'completed' if text else 'failed'
             document.save()
-            
             return Response({
                 'status': 'success',
                 'text_length': len(text) if text else 0,
@@ -160,6 +227,44 @@ class ComplianceDocumentViewSet(viewsets.ModelViewSet):
             document.analysis_error = str(e)
             document.save()
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'])
+    def process_invoice(self, request, pk=None):
+        document = self.get_object()
+
+        if document.document_type != 'invoice':
+            return Response(
+                {'error': 'El documento no es una factura'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not document.extracted_text:
+            extractor = DocumentExtractorService()
+            try:
+                text = extractor.extract_text(document)
+                document.extracted_text = text
+                document.extraction_date = timezone.now()
+                document.analysis_status = 'completed' if text else 'failed'
+                document.save()
+            except Exception as extract_error:
+                document.analysis_status = 'failed'
+                document.analysis_error = str(extract_error)
+                document.save()
+                return Response({'error': str(extract_error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            processor = InvoiceCarbonProcessorService()
+            result = processor.process_document(document)
+            serializer = self.get_serializer(document)
+            return Response({
+                'status': 'processed',
+                'result': result,
+                'document': serializer.data,
+            })
+        except Exception as process_error:
+            document.analysis_error = str(process_error)
+            document.save(update_fields=['analysis_error', 'updated_at'])
+            return Response({'error': str(process_error)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ComplianceAnalysisViewSet(viewsets.ModelViewSet):

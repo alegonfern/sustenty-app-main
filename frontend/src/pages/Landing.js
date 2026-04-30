@@ -9,8 +9,7 @@ export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 900px)');
   const menuItems = [
-    { label: 'Características', href: '#features' },
-    { label: 'Clientes', href: '#clientes' },
+    { label: 'Cómo funciona', href: '#como-funciona' },
     { label: 'Precios', href: '#precios' },
     { label: 'Comenzar', href: '/register', className: 'landing' },
     { label: 'Iniciar Sesión', href: '/login', className: 'landing-cta' }
@@ -72,29 +71,25 @@ export default function Landing() {
       {/* ...existing code... */}
 
 
-      {/* Sección Beneficios */}
-      <section id="beneficios" className="landing-benefits" style={{background:'#fafbfb',padding:'3rem 2vw',textAlign:'center'}}>
-        <h3 style={{color:'#15b19d',fontWeight:700,fontSize:'2rem',marginBottom:'2rem'}}>Beneficios de usar Sustenty</h3>
-        <div style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:'2rem'}}>
-          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
-            <span style={{fontSize:'2rem',marginBottom:8}}>🗄️</span>
-            <h4 style={{color:'#15b19d'}}>Centralización de datos ESG</h4>
-            <p>Gestiona toda la información ambiental, social y de gobernanza en un solo lugar, facilitando el acceso y la trazabilidad.</p>
+      {/* Sección Cómo funciona */}
+      <section id="como-funciona" style={{background:'#fafbfb',padding:'4rem 2vw',textAlign:'center'}}>
+        <h3 style={{color:'#15b19d',fontWeight:700,fontSize:'2rem',marginBottom:'0.5rem'}}>Cómo funciona</h3>
+        <p style={{color:'#555',fontSize:'1.1rem',marginBottom:'3rem'}}>Tres pasos para pasar del caos operacional a una empresa eficiente, sostenible y conectada.</p>
+        <div style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:'2rem',maxWidth:1100,margin:'0 auto'}}>
+          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'flex-start',textAlign:'left'}}>
+            <div style={{background:'#e6f9f6',color:'#15b19d',fontWeight:700,borderRadius:8,padding:'0.4rem 0.9rem',marginBottom:'1rem',fontSize:'0.9rem'}}>Paso 1</div>
+            <h4 style={{color:'#15b19d',marginBottom:'0.5rem'}}>Conecta y describe tu operación</h4>
+            <p style={{color:'#444',margin:0}}>Conecta tus sistemas y describe tus procesos en lenguaje natural. Nuestra IA los entiende, estructura y los integra automáticamente.</p>
           </div>
-          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
-            <span style={{fontSize:'2rem',marginBottom:8}}>🛡️</span>
-            <h4 style={{color:'#15b19d'}}>Cumplimiento normativo simplificado</h4>
-            <p>Automatiza reportes y procesos para cumplir con regulaciones y estándares internacionales de sostenibilidad.</p>
+          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'flex-start',textAlign:'left'}}>
+            <div style={{background:'#e6f9f6',color:'#15b19d',fontWeight:700,borderRadius:8,padding:'0.4rem 0.9rem',marginBottom:'1rem',fontSize:'0.9rem'}}>Paso 2</div>
+            <h4 style={{color:'#15b19d',marginBottom:'0.5rem'}}>La IA optimiza y automatiza</h4>
+            <p style={{color:'#444',margin:0}}>El agente inteligente detecta ineficiencias, recomienda automatizaciones y conecta los sistemas clave para maximizar eficiencia y sostenibilidad.</p>
           </div>
-          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
-            <span style={{fontSize:'2rem',marginBottom:8}}>🤝</span>
-            <h4 style={{color:'#15b19d'}}>Colaboración y transparencia</h4>
-            <p>Permite a equipos y consultores trabajar juntos, asignar tareas y compartir avances en tiempo real.</p>
-          </div>
-          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center'}}>
-            <span style={{fontSize:'2rem',marginBottom:8}}>📊</span>
-            <h4 style={{color:'#15b19d'}}>Analítica y visualización</h4>
-            <p>Obtén insights visuales y reportes automáticos para tomar mejores decisiones y comunicar tu impacto.</p>
+          <div style={{maxWidth:320,background:'#fff',borderRadius:12,boxShadow:'0 2px 12px #0001',padding:'2rem',display:'flex',flexDirection:'column',alignItems:'flex-start',textAlign:'left'}}>
+            <div style={{background:'#e6f9f6',color:'#15b19d',fontWeight:700,borderRadius:8,padding:'0.4rem 0.9rem',marginBottom:'1rem',fontSize:'0.9rem'}}>Paso 3</div>
+            <h4 style={{color:'#15b19d',marginBottom:'0.5rem'}}>Mide, reporta y compensa</h4>
+            <p style={{color:'#444',margin:0}}>Cada proceso queda monitoreado. Obtén métricas de eficiencia y huella de carbono en tiempo real, y compensa tu impacto desde la plataforma.</p>
           </div>
         </div>
       </section>
@@ -153,19 +148,20 @@ export default function Landing() {
 
       {/* ...otras secciones... */}
 
-      {/* Sección Features (Automatización, Colaboración, Analítica visual) - ahora justo después de beneficios */}
+      {/* Sección Features */}
       <section id="features" className="landing-features">
+        <h3 style={{color:'#15b19d',fontWeight:700,fontSize:'2rem',marginBottom:'2rem',textAlign:'center'}}>¿Por qué elegir Sustenty?</h3>
         <div className="landing-feature">
-          <h2>Automatización</h2>
-          <p>Procesos automáticos para cumplimiento y reportes ESG.</p>
+          <h2>Procesos conectados, visibles y mejorables</h2>
+          <p>La IA conecta tus sistemas y centraliza la operación. Cada flujo es visible, medible y mejorable desde el primer día.</p>
         </div>
         <div className="landing-feature">
-          <h2>Colaboración</h2>
-          <p>Equipos conectados y roles claros para lograr objetivos sostenibles.</p>
+          <h2>Eficiencia y sostenibilidad, sin esfuerzo</h2>
+          <p>Optimiza y mide el impacto ambiental de cada proceso automáticamente. La eficiencia y la sostenibilidad avanzan juntas.</p>
         </div>
         <div className="landing-feature">
-          <h2>Analítica visual</h2>
-          <p>Visualiza métricas clave y reportes de manera intuitiva.</p>
+          <h2>Mejora continua impulsada por IA</h2>
+          <p>El agente aprende de tu operación, detecta oportunidades y propone mejoras. Tu empresa escala sin perder control ni sostenibilidad.</p>
         </div>
       </section>
      
@@ -178,8 +174,8 @@ export default function Landing() {
                 <span className="landing-price-desc"></span>
             </div>
             <ul>
-              <li>Hasta 5 usuarios</li>
-              <li>Reportes básicos ESG</li>
+              <li>Hasta 3 procesos activos con IA</li>
+              <li>KPIs operacionales y sostenibles básicos</li>
               <li>Soporte por email</li>
             </ul>
               <a href="#contact" className="landing-cta">Comenzar gratis</a>
@@ -191,9 +187,9 @@ export default function Landing() {
                 <span className="landing-price-desc"></span>
             </div>
             <ul>
-              <li>Usuarios ilimitados</li>
-              <li>Reportes avanzados ESG</li>
-              <li>Integraciones y API</li>
+              <li>Procesos ilimitados con IA y automatización</li>
+              <li>Integraciones y API para conectar tus sistemas</li>
+              <li>Huella de carbono y métricas de eficiencia en tiempo real</li>
               <li>Soporte prioritario</li>
             </ul>
               <a href="#contact" className="landing-cta">Solicitar demo</a>
@@ -205,9 +201,8 @@ export default function Landing() {
                 <span className="landing-price-desc"></span>
             </div>
             <ul>
-              <li>Acceso a múltiples empresas</li>
-              <li>Panel de clientes y reportes</li>
-              <li>Herramientas para consultores</li>
+              <li>Herramientas para consultores y panel multiempresa</li>
+              <li>Automatización y métricas para todos tus clientes</li>
               <li>Soporte dedicado</li>
             </ul>
               <a href="#contact" className="landing-cta">Contactar ventas</a>
@@ -219,12 +214,10 @@ export default function Landing() {
         <div className="contact-boxes-wrapper">
           <div className="contact-cta-box">
             <h2 className="contact-cta-title">
-              Construyamos juntos un futuro más <br/>
-              <span className="cta-animated-word"><AnimatedWords words={["verde", "justo", "sostenible"]} /></span>
+              Construyamos juntos una operación más eficiente, sostenible y conectada
             </h2>
             <p className="contact-cta-desc">
-              Da el primer paso hacia la transformación sostenible de tu empresa.<br />
-              Déjanos tus datos y nuestro equipo te contactará para mostrarte cómo Sustenty puede ayudarte a liderar el cambio.
+              Da el primer paso para eliminar el caos operacional. Descubre cómo la IA de Sustenty conecta tus sistemas y transforma tus procesos.
             </p>
           </div>
           <div className="contact-form-box">
@@ -243,16 +236,16 @@ export default function Landing() {
         <h2 className="landing-faq-title">Preguntas frecuentes sobre Sustenty</h2>
         <div className="landing-faq-list">
           <details className="landing-faq-item">
-            <summary>¿Qué es Sustenty y para quién está pensada?</summary>
-            <div>Sustenty es una plataforma SaaS para la gestión integral de la sostenibilidad, cumplimiento ESG y reputación corporativa. Está pensada para empresas, consultores y equipos que buscan centralizar, medir y mejorar su impacto ambiental, social y de gobernanza.</div>
+            <summary>¿Qué es Sustenty?</summary>
+            <div>Sustenty es una plataforma con agentes de IA que optimiza los procesos de tu empresa y los hace sostenibles. Describes cómo opera tu negocio, y Sustenty lo estructura, lo mejora y calcula su huella de carbono automáticamente.</div>
           </details>
           <details className="landing-faq-item">
-            <summary>¿Qué ventajas ofrece frente a hojas de cálculo o soluciones manuales?</summary>
-            <div>Automatiza procesos, centraliza la información, facilita la colaboración y genera reportes visuales y automáticos, ahorrando tiempo y reduciendo errores.</div>
+            <summary>¿Qué ventajas ofrece frente a herramientas como Zapier o Make?</summary>
+            <div>A diferencia de herramientas de automatización genéricas, Sustenty primero te ayuda a entender y estructurar tu operación. Una vez mapeado el proceso, el agente recomienda automatizaciones y calcula la huella de carbono sin trabajo adicional.</div>
           </details>
           <details className="landing-faq-item">
-            <summary>¿Puedo personalizar los reportes y métricas?</summary>
-            <div>Sí, Sustenty permite personalizar reportes, indicadores y paneles según las necesidades de tu organización o clientes.</div>
+            <summary>¿Puedo personalizar los procesos y métricas?</summary>
+            <div>Sí, Sustenty permite describir procesos en lenguaje natural y el agente los estructura en sistema. Los KPIs — incluyendo huella de carbono — se generan automáticamente para cada proceso.</div>
           </details>
           <details className="landing-faq-item">
             <summary>¿Qué soporte ofrecen?</summary>
@@ -272,8 +265,7 @@ export default function Landing() {
             <img src="/logo-full.svg" alt="Sustenty Logo" style={{height:38}} />
           </div>
           <nav style={{display:'flex',gap:'2rem',flexWrap:'wrap'}}>
-            <a href="#features" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Características</a>
-            <a href="#beneficios" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Beneficios</a>
+            <a href="#como-funciona" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Cómo funciona</a>
             <a href="#precios" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Precios</a>
             <a href="#contact" style={{color:'#222',textDecoration:'none',fontWeight:500}}>Contacto</a>
           </nav>

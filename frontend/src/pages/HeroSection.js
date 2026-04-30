@@ -24,15 +24,15 @@ export default function HeroSection() {
       <div className="hero-inner">
         <div className="hero-content">
           <h1>
-            Gestiona{' '}
-            <span className="hero-highlight">
-              <AnimatedWords words={["Huella de Co2", "Sostenibilidad", "Reputación", "Impacto", "Cumplimiento"]} typingSpeed={60} pause={900} interval={1200} />
-            </span>{' '}de tu empresa.
+            IA que transforma tus procesos para hacerlos más eficientes y sostenibles
           </h1>
           <p className="hero-desc">
-            Centraliza, mide y mejora el impacto ambiental, social y de gobernanza de tu organización con una plataforma SaaS minimalista y colaborativa.
+            Automatiza, escala y lidera el cambio sostenible en tu empresa con IA.
           </p>
-          <a href="/register" className="hero-cta">Comienza ahora gratis</a>
+          <div style={{display:'flex',gap:'1rem',flexWrap:'wrap'}}>
+            <a href="/register" className="hero-cta">Comenzar gratis</a>
+            <a href="#como-funciona" className="hero-cta" style={{background:'transparent',border:'2px solid #15b19d',color:'#15b19d'}}>Ver cómo funciona</a>
+          </div>
           <div className="hero-logos">
             {logos.map((logo, i) => (
               <img src={logo} alt="logo" key={i} />
