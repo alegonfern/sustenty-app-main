@@ -1,9 +1,85 @@
+class DocumentExtractorService:
+    """
+    Servicio para extraer texto de documentos (PDF, DOCX, etc.)
+    """
+
+class DocumentExtractorService:
+    """
+    Servicio para extraer texto de documentos (PDF, DOCX, etc.)
+    """
+
+    def classify_document_type_ia(self, text: str) -> str:
+        """
+        Clasifica el tipo de documento usando IA (OpenAI) o reglas simples como fallback.
+        """
+        # --- IA con OpenAI ---
+        openai_api_key = getattr(settings, 'OPENAI_API_KEY', os.environ.get('OPENAI_API_KEY'))
+        if openai_api_key:
+            try:
+                import openai
+                openai.api_key = openai_api_key
+                prompt = (
+                    """Clasifica el siguiente documento en una de estas categorías: 
+                    - invoice (Factura)
+                    - policy (Política)
+                    - procedure (Procedimiento)
+                    - manual (Manual)
+                    - record (Registro)
+                    - certificate (Certificado)
+                    - audit_report (Informe de Auditoría)
+                    - evidence (Evidencia)
+                    - contract (Contrato)
+                    - training (Material de Capacitación)
+                    - other (Otro)
+                    Responde solo con la categoría (en inglés, sin explicación):\n\n""" + text[:2000])
+                response = openai.Completion.create(
+                    engine='gpt-3.5-turbo-instruct',
+                    prompt=prompt,
+                    max_tokens=5,
+                    temperature=0
+                )
+                tipo = response.choices[0].text.strip().lower()
+                valid_types = [
+                    'invoice', 'policy', 'procedure', 'manual', 'record', 'certificate',
+                    'audit_report', 'evidence', 'contract', 'training', 'other'
+                ]
+                for vt in valid_types:
+                    if vt in tipo:
+                        return vt
+                return 'other'
+            except Exception as e:
+                logger.error(f"Error clasificando tipo de documento con OpenAI: {e}")
+        # --- Fallback a reglas simples ---
+        t = text.lower()
+        if any(w in t for w in ['factura', 'invoice', 'rfc', 'subtotal', 'iva']):
+            return 'invoice'
+        if any(w in t for w in ['contrato', 'contract']):
+            return 'contract'
+        if any(w in t for w in ['política', 'policy']):
+            return 'policy'
+        if any(w in t for w in ['procedimiento', 'procedure']):
+            return 'procedure'
+        if any(w in t for w in ['manual']):
+            return 'manual'
+        if any(w in t for w in ['registro', 'record']):
+            return 'record'
+        if any(w in t for w in ['certificado', 'certificate']):
+            return 'certificate'
+        if any(w in t for w in ['auditoría', 'audit']):
+            return 'audit_report'
+        if any(w in t for w in ['evidencia', 'evidence']):
+            return 'evidence'
+        if any(w in t for w in ['capacitaci', 'training']):
+            return 'training'
+        return 'other'
 """
 Servicios para análisis de cumplimiento con IA
 """
 import os
 import logging
 from typing import Optional, Dict, List, Any
+from decimal import Decimal, InvalidOperation
+import re
 from django.conf import settings
 from django.utils import timezone
 
@@ -100,10 +176,24 @@ class DocumentExtractorService:
             
             text = self.extract_text(document)
             
+
             document.extracted_text = text
             document.extraction_date = timezone.now()
+            # --- Clasificación automática IA del tipo de documento ---
+            if text:
+                tipo_detectado = self.classify_document_type_ia(text)
+                document.document_type = tipo_detectado
             document.analysis_status = 'completed' if text else 'failed'
             document.save()
+
+            if text and document.document_type == 'invoice':
+                try:
+                    processor = InvoiceCarbonProcessorService()
+                    processor.process_document(document)
+                except Exception as invoice_error:
+                    logger.error(f"Error procesando factura {document.id}: {invoice_error}")
+                    document.analysis_error = str(invoice_error)
+                    document.save(update_fields=['analysis_error', 'updated_at'])
             
         except Exception as e:
             logger.error(f"Error en extracción async: {e}")
@@ -114,6 +204,287 @@ class DocumentExtractorService:
                 document.save()
             except:
                 pass
+
+
+class InvoiceCarbonProcessorService:
+    CATEGORY_TO_FACTOR_CODES = {
+        'electricity': ['GRID_ELECTRICITY'],
+        'diesel': ['DIESEL_COMBUSTION'],
+        'gasoline': ['GASOLINE_COMBUSTION'],
+        'natural_gas': ['NATURAL_GAS'],
+        'freight': ['FREIGHT_TRANSPORT'],
+        'flight': ['BUSINESS_FLIGHT'],
+        'transport': ['TAXI_TRANSPORT', 'BUS_TRANSPORT'],
+        'waste': ['WASTE_LANDFILL'],
+    }
+
+    def process_document(self, document) -> Dict[str, Any]:
+        from apps.carbon.models import CarbonDataEntry
+
+        if document.document_type != 'invoice':
+            raise ValueError('Solo se pueden procesar documentos de tipo factura')
+
+        if not document.extracted_text:
+            raise ValueError('La factura no tiene texto extraído')
+
+        extracted_data = self._extract_invoice_data(document.extracted_text, document.name)
+        factor = self._resolve_emission_factor(document.organization, extracted_data['category'])
+        if not factor:
+            raise ValueError('No se encontró un factor de emisión para la categoría detectada')
+
+        quantity = self._resolve_quantity(extracted_data, factor)
+        if quantity is None or quantity <= 0:
+            raise ValueError('No se pudo determinar una cantidad válida para calcular la huella')
+
+        period = self._resolve_period(document.organization, extracted_data['issue_date'], document.uploaded_by)
+        collection_date = extracted_data['issue_date']
+
+        notes = (
+            f"Registro automático desde factura {document.name}. "
+            f"Proveedor: {extracted_data.get('supplier') or 'No detectado'}. "
+            f"Monto: {extracted_data.get('amount_total') or 'No detectado'}."
+        )
+
+        entry, created = CarbonDataEntry.objects.get_or_create(
+            period=period,
+            factor=factor,
+            collection_date=collection_date,
+            defaults={
+                'quantity': quantity,
+                'value_numeric': quantity,
+                'status': 'completed',
+                'responsible': document.uploaded_by,
+                'notes': notes,
+                'organization': document.organization,
+                'created_by': document.uploaded_by,
+            }
+        )
+
+        if not created:
+            entry.quantity = (entry.quantity or Decimal('0')) + quantity
+            entry.value_numeric = entry.quantity
+            existing_notes = entry.notes or ''
+            if notes not in existing_notes:
+                entry.notes = f"{existing_notes}\n{notes}".strip()
+            if document.uploaded_by and not entry.responsible:
+                entry.responsible = document.uploaded_by
+            if document.organization and not entry.organization:
+                entry.organization = document.organization
+            entry.status = 'completed'
+            entry.save()
+
+        extracted_data['resolved_factor_code'] = factor.code
+        extracted_data['resolved_factor_name'] = factor.name
+        extracted_data['resolved_quantity'] = str(quantity)
+        extracted_data['carbon_entry_id'] = entry.id
+        extracted_data['processed_at'] = timezone.now().isoformat()
+
+        document.extracted_metadata = self._serialize_metadata(extracted_data)
+        document.carbon_entry = entry
+        document.analysis_error = None
+        document.save(update_fields=['extracted_metadata', 'carbon_entry', 'analysis_error', 'updated_at'])
+
+        return {
+            'carbon_entry_id': entry.id,
+            'created': created,
+            'factor': factor.code,
+            'quantity': str(quantity),
+        }
+
+    def _extract_invoice_data(self, text: str, filename: str) -> Dict[str, Any]:
+        content = text or ''
+        content_lower = content.lower()
+
+        issue_date = self._extract_date(content) or timezone.now().date()
+        amount_total = self._extract_amount(content)
+        supplier = self._extract_supplier(content, filename)
+        category = self._classify_category(content_lower, filename.lower())
+
+        quantity = self._extract_quantity_for_category(content, category)
+
+        return {
+            'supplier': supplier,
+            'issue_date': issue_date,
+            'amount_total': amount_total,
+            'category': category,
+            'quantity': quantity,
+            'source': 'invoice_repository',
+        }
+
+    def _serialize_metadata(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        serialized = {}
+        for key, value in payload.items():
+            if hasattr(value, 'isoformat'):
+                serialized[key] = value.isoformat()
+            elif isinstance(value, Decimal):
+                serialized[key] = str(value)
+            else:
+                serialized[key] = value
+        return serialized
+
+    def _extract_date(self, text: str):
+        date_patterns = [
+            r'(?:fecha|emisi[oó]n)\s*[:\-]?\s*(\d{2}[\/\-]\d{2}[\/\-]\d{4})',
+            r'(\d{2}[\/\-]\d{2}[\/\-]\d{4})',
+            r'(\d{4}[\/\-]\d{2}[\/\-]\d{2})',
+        ]
+
+        for pattern in date_patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                raw_date = match.group(1)
+                for fmt in ('%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d', '%Y/%m/%d'):
+                    try:
+                        from datetime import datetime
+                        return datetime.strptime(raw_date, fmt).date()
+                    except ValueError:
+                        continue
+        return None
+
+    def _extract_amount(self, text: str):
+        amount_patterns = [
+            r'(?:total|monto\s+total|importe\s+total)\s*[:\-]?\s*[$€]?\s*([\d\.,]+)',
+            r'[$€]\s*([\d\.,]+)',
+        ]
+
+        for pattern in amount_patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                return self._to_decimal(match.group(1))
+        return None
+
+    def _extract_supplier(self, text: str, filename: str) -> str:
+        supplier_patterns = [
+            r'(?:proveedor|empresa|raz[oó]n\s+social)\s*[:\-]\s*([^\n\r]+)',
+        ]
+
+        for pattern in supplier_patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                return match.group(1).strip()[:200]
+
+        cleaned_name = re.sub(r'\.[a-zA-Z0-9]{2,4}$', '', filename)
+        return cleaned_name[:200]
+
+    def _classify_category(self, text_lower: str, filename_lower: str) -> str:
+        classifier = f"{text_lower}\n{filename_lower}"
+
+        if any(token in classifier for token in ['kwh', 'electricidad', 'energía eléctrica', 'energia electrica']):
+            return 'electricity'
+        if any(token in classifier for token in ['diésel', 'diesel', 'gasoil']):
+            return 'diesel'
+        if any(token in classifier for token in ['gasolina', 'bencina']):
+            return 'gasoline'
+        if any(token in classifier for token in ['gas natural', 'm3 gas', 'm³ gas']):
+            return 'natural_gas'
+        if any(token in classifier for token in ['flete', 'logística', 'logistica', 'transporte de carga', 'mercancías']):
+            return 'freight'
+        if any(token in classifier for token in ['vuelo', 'aerolínea', 'aerolinea', 'pasaje aéreo', 'pasaje aereo']):
+            return 'flight'
+        if any(token in classifier for token in ['uber', 'taxi', 'bus', 'autobús', 'transporte']):
+            return 'transport'
+        if any(token in classifier for token in ['residuo', 'vertedero', 'basura']):
+            return 'waste'
+        return 'transport'
+
+    def _extract_quantity_for_category(self, text: str, category: str):
+        category_patterns = {
+            'electricity': [r'([\d\.,]+)\s*kwh'],
+            'diesel': [r'([\d\.,]+)\s*l(?:itros?)?'],
+            'gasoline': [r'([\d\.,]+)\s*l(?:itros?)?'],
+            'natural_gas': [r'([\d\.,]+)\s*m3', r'([\d\.,]+)\s*m³'],
+            'freight': [r'([\d\.,]+)\s*ton(?:eladas?)?'],
+            'flight': [r'([\d\.,]+)\s*km'],
+            'transport': [r'([\d\.,]+)\s*km'],
+            'waste': [r'([\d\.,]+)\s*kg'],
+        }
+
+        for pattern in category_patterns.get(category, []):
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                return self._to_decimal(match.group(1))
+        return None
+
+    def _resolve_emission_factor(self, organization, category: str):
+        from apps.carbon.models import EmissionFactor
+        from .models import InvoiceEmissionMapping
+
+        custom_mapping = InvoiceEmissionMapping.objects.filter(
+            organization=organization,
+            category=category,
+            is_active=True,
+        ).select_related('emission_factor').first()
+
+        if custom_mapping and custom_mapping.emission_factor and custom_mapping.emission_factor.is_active:
+            return custom_mapping.emission_factor
+
+        preferred_codes = self.CATEGORY_TO_FACTOR_CODES.get(category, [])
+        if not preferred_codes:
+            return None
+
+        by_org = EmissionFactor.objects.filter(
+            code__in=preferred_codes,
+            is_active=True,
+            organization=organization,
+        ).order_by('id').first()
+        if by_org:
+            return by_org
+
+        return EmissionFactor.objects.filter(
+            code__in=preferred_codes,
+            is_active=True,
+            organization__isnull=True,
+        ).order_by('id').first()
+
+    def _resolve_period(self, organization, issue_date, user):
+        from apps.carbon.models import CarbonPeriod
+
+        period = CarbonPeriod.objects.filter(
+            organization=organization,
+            is_closed=False,
+            start_date__lte=issue_date,
+            end_date__gte=issue_date,
+        ).order_by('-start_date').first()
+
+        if period:
+            return period
+
+        period_name = f"Periodo {issue_date.year}"
+        period, _ = CarbonPeriod.objects.get_or_create(
+            organization=organization,
+            name=period_name,
+            defaults={
+                'start_date': issue_date.replace(month=1, day=1),
+                'end_date': issue_date.replace(month=12, day=31),
+                'is_active': True,
+                'is_closed': False,
+                'description': f'Periodo generado automáticamente desde facturas {issue_date.year}',
+                'created_by': user,
+            }
+        )
+        return period
+
+    def _resolve_quantity(self, extracted_data: Dict[str, Any], factor):
+        quantity = extracted_data.get('quantity')
+        if quantity is not None:
+            return quantity
+
+        amount = extracted_data.get('amount_total')
+        if amount is not None and factor.unit in ('currency', 'other', 'count'):
+            return amount
+        return None
+
+    def _to_decimal(self, raw_value: str):
+        cleaned = str(raw_value).strip().replace(' ', '')
+        if cleaned.count(',') > 0 and cleaned.count('.') > 0:
+            cleaned = cleaned.replace('.', '').replace(',', '.')
+        elif cleaned.count(',') > 0 and cleaned.count('.') == 0:
+            cleaned = cleaned.replace(',', '.')
+
+        try:
+            return Decimal(cleaned)
+        except (InvalidOperation, ValueError):
+            return None
 
 
 class ComplianceAnalyzerService:

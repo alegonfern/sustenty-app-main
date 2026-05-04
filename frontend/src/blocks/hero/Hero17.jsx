@@ -21,7 +21,7 @@
 							</motion.div>
 							<motion.div initial={{ opacity: 0, scale: 0.6 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.2, ease: 'linear' }}>
 								<Typography variant="h2" align="center" sx={{ maxWidth: 800, fontWeight: 800 }}>
-									{headLine || 'Mide, Mejora, Compensa.'}
+									  {headLine || 'IA que transforma tus procesos para hacerlos más eficientes y sostenibles'}
 								</Typography>
 							</motion.div>
 							<motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, delay: 0.2, ease: [0.215, 0.61, 0.355, 1] }}>
@@ -31,7 +31,7 @@
 							</motion.div>
 							<motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, delay: 0.3, ease: [0.215, 0.61, 0.355, 1] }}>
 								<Typography variant="h5" align="center" sx={{ color: 'text.secondary', maxWidth: 650 }}>
-									{captionLine || 'La plataforma SaaS para gestión ESG, cumplimiento y equipos. Centraliza, mide y mejora tu impacto ambiental, social y de gobernanza.'}
+									  {captionLine || 'Automatiza, escala y lidera el cambio sostenible en tu empresa con IA.'}
 								</Typography>
 							</motion.div>
 						</Stack>
