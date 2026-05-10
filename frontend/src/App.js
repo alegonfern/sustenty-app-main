@@ -23,6 +23,10 @@ import Landing from './pages/LandingYC';
 
 import Register from './pages/Register';
 import MisAgentes from './pages/MisAgentes';
+import Onboarding from './pages/Onboarding';
+import Integraciones from './pages/inventario/Integraciones';
+import Facturas from './pages/inventario/Facturas';
+import Normativas from './pages/inventario/Normativas';
 
 
 // Compliance Module
@@ -73,6 +77,10 @@ function App() {
         <Route path="carbon/analytics" element={<CarbonAnalytics />} />
         <Route path="carbon/config" element={<CarbonConfig />} />
         <Route path="agentes-ia" element={<MisAgentes />} />
+        <Route path="onboarding" element={<Onboarding />} />
+        <Route path="inventario/integraciones" element={<Integraciones />} />
+        <Route path="inventario/facturas" element={<Facturas />} />
+        <Route path="inventario/normativas" element={<Normativas />} />
     
         {/* Compliance Routes */}
         <Route path="compliance" element={<ComplianceDashboard />} />

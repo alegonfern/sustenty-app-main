@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 import {
   Drawer as MuiDrawer,
   Box,
@@ -9,6 +10,7 @@ import {
   ListItemText,
   Typography,
   Divider,
+  Collapse,
   useTheme,
   useMediaQuery,
   styled,
@@ -19,21 +21,18 @@ import {
   Chip
 } from '@mui/material';
 import {
-  Home,
-  Database,
-  BarChart3,
-  ListChecks,
-  Settings,
-  ShieldCheck,
-  FileText,
-  LineChart,
-  AlertTriangle,
-  ClipboardList,
-  Building2,
-  Users,
-  ArrowRight,
+  Rss,
+  Package,
+  BookOpen,
+  LayoutDashboard,
   Sparkles,
-  HelpCircle
+  BookMarked,
+  ArrowRight,
+  Plug,
+  Receipt,
+  FileCheck,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from '../../../config';
@@ -79,69 +78,27 @@ const closedMixin = (theme) => ({
 
 const menuGroups = [
   {
-    id: 'navigation',
-    title: 'Navegación',
+    id: 'main',
+    title: '',
     type: 'group',
     children: [
-      { id: 'home', text: 'Inicio', icon: <Home size={20} />, path: '/app', type: 'item' }
-    ]
-  },
-  {
-    id: 'agentes-ia',
-    title: 'Agentes IA',
-    type: 'group',
-    children: [
-      { id: 'mis-agentes', text: 'Mis agentes', icon: <Sparkles size={20} />, path: '/app/agentes-ia', type: 'item' }
-    ]
-  },
-  {
-    id: 'carbon',
-    title: 'Huella de Carbono',
-    type: 'group',
-    children: [
-      { id: 'carbon-collection', text: 'Registro', icon: <Database size={20} />, path: '/app/carbon/collection', type: 'item' },
-      { id: 'carbon-analytics', text: 'Analítica', icon: <BarChart3 size={20} />, path: '/app/carbon/analytics', type: 'item' },
-      { id: 'carbon-config', text: 'Configuración', icon: <Settings size={20} />, path: '/app/carbon/config', type: 'item' }
-    ]
-  },
-  {
-    id: 'esg',
-    title: 'ESG',
-    type: 'group',
-    children: [
-      { id: 'esg-overview', text: 'Marco ESG', icon: <BarChart3 size={20} />, path: '/app/esg/overview', type: 'item' },
-      { id: 'esg-actions', text: 'Acciones', icon: <ListChecks size={20} />, path: '/app/esg/actions', type: 'item' },
-      { id: 'esg-analytics', text: 'Analítica', icon: <LineChart size={20} />, path: '/app/esg/analytics', type: 'item' }
-    ]
-  },
-  {
-    id: 'compliance',
-    title: 'Cumplimiento',
-    type: 'group',
-    children: [
-      { id: 'compliance-dashboard', text: 'Dashboard', icon: <ShieldCheck size={20} />, path: '/app/compliance/dashboard', type: 'item' },
-      { id: 'compliance-documents', text: 'Documentos', icon: <FileText size={20} />, path: '/app/compliance/documents', type: 'item' },
-      { id: 'compliance-analyses', text: 'Análisis', icon: <LineChart size={20} />, path: '/app/compliance/analyses', type: 'item' },
-      { id: 'compliance-gaps', text: 'Brechas', icon: <AlertTriangle size={20} />, path: '/app/compliance/gaps', type: 'item' },
-      { id: 'compliance-reports', text: 'Reportes', icon: <ClipboardList size={20} />, path: '/app/compliance/reports', type: 'item' }
-    ]
-  },
-  {
-    id: 'management',
-    title: 'Gestión',
-    type: 'group',
-    children: [
-      { id: 'organizations', text: 'Organizaciones', icon: <Building2 size={20} />, path: '/app/organizations', type: 'item' },
-      { id: 'teams', text: 'Equipo', icon: <Users size={20} />, path: '/app/team/teams', type: 'item' }
-    ]
-  },
-  {
-    id: 'settings',
-    title: 'Sistema',
-    type: 'group',
-    children: [
-      { id: 'settings', text: 'Configuración', icon: <Settings size={20} />, path: '/app/settings', type: 'item' },
-      { id: 'help', text: 'Ayuda', icon: <HelpCircle size={20} />, path: '/app/ayuda', type: 'item', badge: 'Soporte' }
+      { id: 'feed', text: 'Feed', icon: <Rss size={20} />, path: '/app', type: 'item' },
+      {
+        id: 'inventario',
+        text: 'Inventario',
+        icon: <Package size={20} />,
+        path: '/app/inventario',
+        type: 'collapse',
+        children: [
+          { id: 'integraciones', text: 'Integraciones', icon: <Plug size={16} />, path: '/app/inventario/integraciones' },
+          { id: 'facturas', text: 'Facturas', icon: <Receipt size={16} />, path: '/app/inventario/facturas' },
+          { id: 'normativas', text: 'Normativas', icon: <FileCheck size={16} />, path: '/app/inventario/normativas' }
+        ]
+      },
+      { id: 'onboarding', text: 'Onboarding', icon: <BookOpen size={20} />, path: '/app/onboarding', type: 'item' },
+      { id: 'dashboard', text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/app/dashboard', type: 'item' },
+      { id: 'agentes', text: 'Agentes', icon: <Sparkles size={20} />, path: '/app/agentes-ia', type: 'item' },
+      { id: 'recursos', text: 'Recursos', icon: <BookMarked size={20} />, path: '/app/recursos', type: 'item' }
     ]
   }
 ];
@@ -151,6 +108,11 @@ export default function Drawer({ open, handleDrawerToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
   const matchDownLG = useMediaQuery(theme.breakpoints.down('lg'));
+  const [expandedItems, setExpandedItems] = useState({ inventario: location.pathname.startsWith('/app/inventario') });
+
+  const toggleExpand = (id) => {
+    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const drawer = (
     <>
@@ -165,52 +127,23 @@ export default function Drawer({ open, handleDrawerToggle }) {
         }}
       >
         {open ? (
-          // Logo completo cuando está abierto
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <img 
-              src="/logo-full.svg" 
-              alt="Sustenty" 
-              style={{ height: 32 }}
-              onError={(e) => {
-                // Fallback: mostrar texto si no existe la imagen
-                e.target.style.display = 'none';
-                e.target.nextElementSibling.style.display = 'block';
-              }}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <img
+              src="/logo_saas.png"
+              alt="Sustenty"
+              style={{ height: 36, width: 36, borderRadius: 8, objectFit: 'cover' }}
             />
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                fontWeight: 700, 
-                color: 'primary.main',
-                display: 'none' // Se muestra solo si falla la imagen
-              }}
-            >
+            <Typography sx={{ fontFamily: "'Recoleta', serif", fontWeight: 700, fontSize: '1.25rem', color: '#1a2e29', letterSpacing: '-0.02em', lineHeight: 1 }}>
               Sustenty
             </Typography>
           </Box>
         ) : (
-          // Solo icono cuando está contraído
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img 
-              src="/logo-icon.svg" 
-              alt="S" 
-              style={{ height: 32, width: 32 }}
-              onError={(e) => {
-                // Fallback si no existe la imagen
-                e.target.style.display = 'none';
-                e.target.nextElementSibling.style.display = 'block';
-              }}
+            <img
+              src="/logo_saas.png"
+              alt="Sustenty"
+              style={{ height: 36, width: 36, borderRadius: 8, objectFit: 'cover' }}
             />
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                fontWeight: 700, 
-                color: 'primary.main',
-                display: 'none' // Se muestra solo si falla la imagen
-              }}
-            >
-              S
-            </Typography>
           </Box>
         )}
       </Box>
@@ -219,7 +152,7 @@ export default function Drawer({ open, handleDrawerToggle }) {
         {menuGroups.map((group, groupIndex) => (
           <Box key={group.id}>
             {/* Group Title */}
-            {open && (
+            {open && group.title && (
               <ListItem sx={{ py: 1, px: 3 }}>
                 <Typography
                   variant="caption"
@@ -237,6 +170,75 @@ export default function Drawer({ open, handleDrawerToggle }) {
             
             {/* Group Items */}
             {group.children.map((item) => {
+              if (item.type === 'collapse') {
+                const isExpanded = expandedItems[item.id];
+                const isActive = location.pathname.startsWith(item.path + '/');
+                return (
+                  <Box key={item.id}>
+                    <ListItem disablePadding sx={{ display: 'block', mb: 0.5 }}>
+                      <ListItemButton
+                        onClick={() => open ? toggleExpand(item.id) : navigate(item.children[0].path)}
+                        sx={{
+                          minHeight: 48,
+                          justifyContent: open ? 'initial' : 'center',
+                          px: 2.5,
+                          mx: 1,
+                          borderRadius: 1,
+                          bgcolor: isActive ? 'primary.lighter' : 'transparent',
+                          color: isActive ? 'primary.main' : 'text.primary',
+                          '&:hover': { bgcolor: isActive ? 'primary.lighter' : 'action.hover' }
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 0, mr: open ? 2 : 'auto', justifyContent: 'center', color: isActive ? 'primary.main' : 'inherit' }}>
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.text}
+                          sx={{ opacity: open ? 1 : 0, '& .MuiTypography-root': { fontWeight: isActive ? 600 : 400 } }}
+                        />
+                        {open && (isExpanded
+                          ? <ChevronDown size={16} />
+                          : <ChevronRight size={16} />)}
+                      </ListItemButton>
+                    </ListItem>
+                    {open && (
+                      <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                        <List disablePadding>
+                          {item.children.map((sub) => {
+                            const isSubSelected = location.pathname === sub.path;
+                            return (
+                              <ListItem key={sub.id} disablePadding sx={{ display: 'block', mb: 0.25 }}>
+                                <ListItemButton
+                                  onClick={() => navigate(sub.path)}
+                                  sx={{
+                                    minHeight: 40,
+                                    pl: 5.5,
+                                    pr: 2.5,
+                                    mx: 1,
+                                    borderRadius: 1,
+                                    bgcolor: isSubSelected ? 'primary.lighter' : 'transparent',
+                                    color: isSubSelected ? 'primary.main' : 'text.secondary',
+                                    '&:hover': { bgcolor: isSubSelected ? 'primary.lighter' : 'action.hover', color: 'text.primary' }
+                                  }}
+                                >
+                                  <ListItemIcon sx={{ minWidth: 0, mr: 1.5, justifyContent: 'center', color: isSubSelected ? 'primary.main' : 'inherit' }}>
+                                    {sub.icon}
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={sub.text}
+                                    sx={{ '& .MuiTypography-root': { fontSize: '0.85rem', fontWeight: isSubSelected ? 600 : 400 } }}
+                                  />
+                                </ListItemButton>
+                              </ListItem>
+                            );
+                          })}
+                        </List>
+                      </Collapse>
+                    )}
+                  </Box>
+                );
+              }
+
               const isSelected = location.pathname === item.path;
               return (
                 <ListItem key={item.id} disablePadding sx={{ display: 'block', mb: 0.5 }}>

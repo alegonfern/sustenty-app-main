@@ -69,6 +69,15 @@ function Hero() {
             Ver cómo funciona
           </a>
         </div>
+        <div className="lyc-preview-wrap-hero">
+          <div className="lyc-preview-inner">
+            <img
+              src="/dashboard_web.png"
+              alt="Vista previa de la plataforma Sustenty"
+              className="lyc-preview-img"
+            />
+          </div>
+        </div>
         <div className="lyc-hero-stats">
           <div className="lyc-stat">
             <div className="lyc-stat-num">8 h</div>
