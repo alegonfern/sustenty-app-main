@@ -116,7 +116,7 @@ export const ThemeProvider = ({ children }) => {
           }
         },
         typography: {
-          fontFamily: `'Inter', 'Public Sans', 'Roboto', sans-serif`,
+          fontFamily: `'DM Sans', 'Inter', 'Public Sans', sans-serif`,
           h1: {
             fontSize: '2.375rem',
             fontWeight: 700,
