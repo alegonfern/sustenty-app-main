@@ -5,7 +5,8 @@ from .models import (
     ComplianceDocument,
     ComplianceAnalysis,
     ComplianceGap,
-    ComplianceReport
+    ComplianceReport,
+    InvoiceEmissionMapping
 )
 
 
@@ -213,6 +214,14 @@ class ComplianceReportCreateSerializer(serializers.ModelSerializer):
         model = ComplianceReport
         fields = ['name', 'report_type', 'format', 'analyses', 'frameworks', 
                  'period_start', 'period_end']
+
+
+class InvoiceEmissionMappingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvoiceEmissionMapping
+        fields = ['id', 'organization', 'category', 'emission_factor',
+                  'is_active', 'notes', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 # Dashboard/Stats Serializers

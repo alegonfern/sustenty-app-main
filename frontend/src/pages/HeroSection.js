@@ -24,10 +24,10 @@ export default function HeroSection() {
       <div className="hero-inner">
         <div className="hero-content">
           <h1>
-            IA que transforma tus procesos para hacerlos más eficientes y sostenibles
+            IA para una operación más sostenible
           </h1>
           <p className="hero-desc">
-            Automatiza, escala y lidera el cambio sostenible en tu empresa con IA.
+            Impulsa la sostenibilidad de tu empresa con inteligencia artificial: automatiza, optimiza y toma decisiones responsables para el planeta y tu negocio.
           </p>
           <div style={{display:'flex',gap:'1rem',flexWrap:'wrap'}}>
             <a href="/register" className="hero-cta">Comenzar gratis</a>
