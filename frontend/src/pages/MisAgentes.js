@@ -14,6 +14,44 @@ import {
 
 
 // ─── Catálogo de agentes ──────────────────────────────────────────────────────
+const COMING_SOON = [
+  {
+    id: 'reduccion-emisiones',
+    nombre: 'Reducción de Emisiones',
+    tagline: 'Optimización automática de Scope 1 y 2',
+    descripcion:
+      'Analiza tus principales fuentes de emisión y propone planes de acción priorizados por impacto y costo para alcanzar tus metas de reducción.'
+  },
+  {
+    id: 'cadena-suministro',
+    nombre: 'Cadena de Suministro',
+    tagline: 'Emisiones Scope 3 de proveedores',
+    descripcion:
+      'Evalúa la huella de carbono de tus proveedores clave, detecta riesgos ESG en la cadena y genera scorecard de sostenibilidad por proveedor.'
+  },
+  {
+    id: 'agua-residuos',
+    nombre: 'Agua & Residuos',
+    tagline: 'Gestión de recursos naturales',
+    descripcion:
+      'Monitorea el consumo de agua y la generación de residuos, identifica oportunidades de economía circular y calcula indicadores GRI 303 y GRI 306.'
+  },
+  {
+    id: 'diversidad-inclusion',
+    nombre: 'Diversidad & Inclusión',
+    tagline: 'Indicadores sociales y de equidad',
+    descripcion:
+      'Recopila y analiza datos de diversidad, equidad e inclusión. Genera brechas salariales de género, representación por nivel jerárquico y recomendaciones de mejora.'
+  },
+  {
+    id: 'estrategia-net-zero',
+    nombre: 'Estrategia Net Zero',
+    tagline: 'Hoja de ruta hacia carbono neutro',
+    descripcion:
+      'Modela diferentes escenarios de descarbonización y construye una hoja de ruta personalizada hacia Net Zero alineada con SBTi y el Acuerdo de París.'
+  }
+];
+
 const CATALOG = [
   {
     id: 'huella-co2',
@@ -430,7 +468,7 @@ export default function MisAgentes() {
         </Alert>
       )}
 
-      {/* ── Grid de cards ── */}
+      {/* ── Grid de cards disponibles ── */}
       <Grid container spacing={3}>
         {CATALOG.map(agent => (
           <Grid item xs={12} md={4} key={agent.id} sx={{ display: 'flex' }}>
@@ -443,6 +481,57 @@ export default function MisAgentes() {
           </Grid>
         ))}
       </Grid>
+
+      {/* ── Próximamente ── */}
+      <Box sx={{ mt: 5, mb: 2 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
+          <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
+          <Stack direction="row" spacing={1} alignItems="center"
+            sx={{ px: 2, py: 0.75, bgcolor: 'grey.100', borderRadius: 99, border: '1px solid', borderColor: 'divider' }}>
+            <Lock size={13} color="#9ca3af" />
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.disabled', letterSpacing: 1 }}>PRÓXIMAMENTE</Typography>
+          </Stack>
+          <Box sx={{ flex: 1, height: 1, bgcolor: 'divider' }} />
+        </Stack>
+        <Grid container spacing={2.5}>
+          {COMING_SOON.map(a => (
+            <Grid item xs={12} sm={6} md={4} key={a.id}>
+              <Card elevation={0} sx={{
+                border: '1.5px dashed', borderColor: 'divider',
+                borderRadius: 3, opacity: 0.7,
+                transition: 'opacity 0.2s',
+                '&:hover': { opacity: 1 }
+              }}>
+                <CardContent sx={{ pb: '16px !important' }}>
+                  <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                    <Chip
+                      icon={<Lock size={11} />}
+                      label="Próximamente"
+                      size="small"
+                      sx={{ fontSize: '0.65rem', bgcolor: 'grey.100', color: 'text.disabled',
+                        height: 20, fontWeight: 700,
+                        '& .MuiChip-icon': { color: 'text.disabled' } }}
+                    />
+                    <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: 'grey.100',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Sparkles size={16} color="#9ca3af" />
+                    </Box>
+                  </Stack>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: 'text.primary' }}>
+                    <strong>{a.nombre}</strong>
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, display: 'block', mb: 1 }}>
+                    {a.tagline}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: '0.78rem' }}>
+                    {a.descripcion}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
 
       {/* ── Dialog configuración ── */}
       {configAgent && (

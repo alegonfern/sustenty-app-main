@@ -83,6 +83,7 @@ const menuGroups = [
     type: 'group',
     children: [
       { id: 'feed', text: 'Feed', icon: <Rss size={20} />, path: '/app', type: 'item' },
+      { id: 'agentes', text: 'Agentes', icon: <Sparkles size={20} />, path: '/app/agentes-ia', type: 'item' },
       {
         id: 'inventario',
         text: 'Inventario',
@@ -97,7 +98,6 @@ const menuGroups = [
       },
       { id: 'onboarding', text: 'Onboarding', icon: <BookOpen size={20} />, path: '/app/onboarding', type: 'item' },
       { id: 'dashboard', text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/app/dashboard', type: 'item' },
-      { id: 'agentes', text: 'Agentes', icon: <Sparkles size={20} />, path: '/app/agentes-ia', type: 'item' },
       { id: 'recursos', text: 'Recursos', icon: <BookMarked size={20} />, path: '/app/recursos', type: 'item' }
     ]
   }
