@@ -27,6 +27,8 @@ import Onboarding from './pages/Onboarding';
 import Integraciones from './pages/inventario/Integraciones';
 import Facturas from './pages/inventario/Facturas';
 import Normativas from './pages/inventario/Normativas';
+import DashboardMain from './pages/DashboardMain';
+import Recursos from './pages/Recursos';
 
 
 // Compliance Module
@@ -81,6 +83,8 @@ function App() {
         <Route path="inventario/integraciones" element={<Integraciones />} />
         <Route path="inventario/facturas" element={<Facturas />} />
         <Route path="inventario/normativas" element={<Normativas />} />
+        <Route path="dashboard" element={<DashboardMain />} />
+        <Route path="recursos" element={<Recursos />} />
     
         {/* Compliance Routes */}
         <Route path="compliance" element={<ComplianceDashboard />} />
