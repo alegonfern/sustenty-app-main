@@ -19,7 +19,7 @@ import CarbonCollection from './pages/carbon/Collection';
 import CarbonAnalytics from './pages/carbon/Analytics';
 import CarbonConfig from './pages/carbon/Config';
 import SaasLanding from './pages/SaasLanding';
-import Landing from './pages/Landing';
+import Landing from './pages/LandingYC';
 
 import Register from './pages/Register';
 import MisAgentes from './pages/MisAgentes';

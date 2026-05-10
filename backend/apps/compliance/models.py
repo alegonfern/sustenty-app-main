@@ -387,3 +387,42 @@ class ComplianceReport(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_report_type_display()})"
+
+
+class InvoiceEmissionMapping(models.Model):
+    """
+    Mapeo de categorías de facturas a factores de emisión para cálculo de huella de carbono.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    organization = models.ForeignKey(
+        'api.Organization',
+        on_delete=models.CASCADE,
+        related_name='invoice_emission_mappings',
+        verbose_name=_('Organización')
+    )
+    category = models.CharField(
+        max_length=200,
+        verbose_name=_('Categoría de Factura')
+    )
+    emission_factor = models.ForeignKey(
+        'carbon.EmissionFactor',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoice_mappings',
+        verbose_name=_('Factor de Emisión')
+    )
+    is_active = models.BooleanField(default=True, verbose_name=_('Activo'))
+    notes = models.TextField(blank=True, verbose_name=_('Notas'))
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['category']
+        unique_together = [['organization', 'category']]
+        verbose_name = _('Mapeo Factura-Emisión')
+        verbose_name_plural = _('Mapeos Factura-Emisión')
+
+    def __str__(self):
+        return f"{self.organization} - {self.category}"
