@@ -285,3 +285,74 @@ body {
 
 /* TEAL DIVIDER */
 .lyc-teal-divider { height:3px; background:linear-gradient(90deg,transparent,var(--teal),transparent); opacity:0.35; }
+
+/* ── Contact ──────────────────────────────────────────────────────────── */
+.lyc-contact-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: start;
+}
+.lyc-contact-text .lyc-sub-l { margin-bottom: 2rem; }
+.lyc-contact-info { display: flex; flex-direction: column; gap: 1rem; }
+.lyc-contact-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--mid);
+}
+.lyc-contact-info-row a { color: var(--teal); text-decoration: none; }
+.lyc-contact-info-row a:hover { text-decoration: underline; }
+.lyc-contact-info-ico { font-size: 1.1rem; flex-shrink: 0; }
+
+.lyc-contact-form-col {
+  background: var(--off-white);
+  border: 1px solid var(--line-l);
+  border-radius: 16px;
+  padding: 2.5rem;
+}
+.lyc-contact-form { display: flex; flex-direction: column; gap: 1.25rem; }
+.lyc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.lyc-form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.lyc-form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--dark);
+  letter-spacing: 0.02em;
+}
+.lyc-form-group input,
+.lyc-form-group textarea {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  color: var(--dark);
+  background: #fff;
+  border: 1.5px solid var(--line-l);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  transition: border-color 0.2s;
+  outline: none;
+  resize: vertical;
+}
+.lyc-form-group input:focus,
+.lyc-form-group textarea:focus { border-color: var(--teal); }
+.lyc-form-group input::placeholder,
+.lyc-form-group textarea::placeholder { color: #9ab4ad; }
+.lyc-btn-full { width: 100%; justify-content: center; text-align: center; }
+
+.lyc-contact-thanks {
+  text-align: center;
+  padding: 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.lyc-contact-thanks-ico { font-size: 3rem; }
+.lyc-contact-thanks-title { font-size: 1.4rem; font-weight: 700; color: var(--dark); }
+.lyc-contact-thanks p { color: var(--mid); }
+
+@media (max-width: 860px) {
+  .lyc-contact-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+  .lyc-form-row { grid-template-columns: 1fr; }
+}
