@@ -339,6 +339,93 @@ function Pricing() {
   );
 }
 
+// ── Contact ───────────────────────────────────────────────────────────
+function Contact() {
+  const [form, setForm] = useState({ nombre: '', email: '', empresa: '', mensaje: '' });
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+
+  const submit = async e => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await fetch('mailto:hola@sustenty.com');
+      // Fallback: abre mailto
+      window.location.href = `mailto:hola@sustenty.com?subject=Contacto%20desde%20sustenty.com&body=Nombre:%20${encodeURIComponent(form.nombre)}%0AEmpresa:%20${encodeURIComponent(form.empresa)}%0AEmail:%20${encodeURIComponent(form.email)}%0A%0A${encodeURIComponent(form.mensaje)}`;
+      setSent(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="lyc-bg-white" id="contacto">
+      <div className="lyc-section lyc-contact-wrap">
+        <div className="lyc-contact-text">
+          <div className="lyc-label">Contacto</div>
+          <h2 className="lyc-h2-l">
+            ¿Listo para medir<br />
+            <span className="teal">tu impacto real?</span>
+          </h2>
+          <p className="lyc-sub-l">
+            Cuéntanos sobre tu empresa y te mostramos cómo Sustenty encaja en tu operación. Sin discursos de ventas, solo una conversación honesta.
+          </p>
+          <div className="lyc-contact-info">
+            <div className="lyc-contact-info-row">
+              <span className="lyc-contact-info-ico">✉️</span>
+              <a href="mailto:hola@sustenty.com">hola@sustenty.com</a>
+            </div>
+            <div className="lyc-contact-info-row">
+              <span className="lyc-contact-info-ico">⏱</span>
+              <span>Respondemos en menos de 24 horas</span>
+            </div>
+            <div className="lyc-contact-info-row">
+              <span className="lyc-contact-info-ico">🌎</span>
+              <span>Atendemos toda Latinoamérica</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="lyc-contact-form-col">
+          {sent ? (
+            <div className="lyc-contact-thanks">
+              <div className="lyc-contact-thanks-ico">✅</div>
+              <div className="lyc-contact-thanks-title">¡Mensaje enviado!</div>
+              <p>Nos pondremos en contacto contigo pronto.</p>
+            </div>
+          ) : (
+            <form className="lyc-contact-form" onSubmit={submit}>
+              <div className="lyc-form-row">
+                <div className="lyc-form-group">
+                  <label htmlFor="cf-nombre">Nombre</label>
+                  <input id="cf-nombre" name="nombre" type="text" placeholder="Tu nombre" required value={form.nombre} onChange={handle} />
+                </div>
+                <div className="lyc-form-group">
+                  <label htmlFor="cf-empresa">Empresa</label>
+                  <input id="cf-empresa" name="empresa" type="text" placeholder="Nombre de tu empresa" required value={form.empresa} onChange={handle} />
+                </div>
+              </div>
+              <div className="lyc-form-group">
+                <label htmlFor="cf-email">Correo electrónico</label>
+                <input id="cf-email" name="email" type="email" placeholder="tu@empresa.com" required value={form.email} onChange={handle} />
+              </div>
+              <div className="lyc-form-group">
+                <label htmlFor="cf-mensaje">¿Qué necesitas?</label>
+                <textarea id="cf-mensaje" name="mensaje" rows={4} placeholder="Cuéntanos sobre tu empresa, cuántos empleados tienen, en qué industria están..." required value={form.mensaje} onChange={handle} />
+              </div>
+              <button className="lyc-btn-primary lyc-btn-full" type="submit" disabled={loading}>
+                {loading ? 'Enviando…' : 'Enviar mensaje →'}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── CTA Final ──────────────────────────────────────────────────────────
 function CTASection() {
   return (
@@ -391,6 +478,7 @@ export default function LandingYC() {
       <HowItWorks />
       <Urgency />
       <Pricing />
+      <Contact />
       <CTASection />
       <Footer />
     </>
