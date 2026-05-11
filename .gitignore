@@ -88,3 +88,4 @@ coverage/
 design-template/
 backups/backup_20260106_171523.sql
 .env_bk
+.env.prod.example
