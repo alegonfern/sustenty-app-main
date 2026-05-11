@@ -1,0 +1,467 @@
+════════════════════════════════════════════════════════════════════
+                    SUSTENTY — TEXTOS PROPUESTOS
+                         Web · Pitch Deck
+════════════════════════════════════════════════════════════════════
+
+
+NOTA PRELIMINAR
+───────────────
+Este documento contiene los textos revisados para la web (landing page)
+y el pitch deck de Sustenty, actualizados para reflejar la plataforma
+completa tal como quedó construida: Agentes IA especializados, módulos
+de Inventario (Facturas y Normativas), Dashboard integrado, Compliance,
+y el Centro de Recursos.
+
+Los textos actuales de la web y el pitch son genéricos y no muestran
+la profundidad real del producto. La propuesta a continuación es más
+concreta, técnica (sin ser densa) y orientada al valor que entrega
+cada módulo.
+
+Lee, anota cambios si los tienes, y cuando apruebes aplicamos.
+
+
+════════════════════════════════════════════════════════════════════
+  PARTE 1 — WEB (LANDING PAGE)
+════════════════════════════════════════════════════════════════════
+
+
+── NAVEGACIÓN ─────────────────────────────────────────────────────
+
+Ítem 1: Producto
+Ítem 2: Agentes IA
+Ítem 3: Regulación
+Ítem 4: Precio
+CTA nav: Solicitar acceso →
+
+
+── HERO ───────────────────────────────────────────────────────────
+
+Badge:
+  "CSRD, GRI y GHG Protocol — tu empresa al día."
+
+Titular (h1):
+  Gestión ESG
+  impulsada por
+  agentes de IA.
+
+Subtítulo:
+  Sustenty conecta tus facturas, normativas y sistemas de datos para
+  calcular tu huella de carbono, monitorear indicadores ESG y generar
+  reportes regulatorios en forma automática. Sin consultoras, sin Excel,
+  sin esperar meses.
+
+Botón primario:   Solicitar acceso →
+Botón secundario: Ver cómo funciona
+
+Estadísticas bajo el dashboard preview:
+  • 8 h        primer inventario de emisiones listo
+  • 3 agentes  especializados trabajando 24/7
+  • −70%       vs. costo de consultoría tradicional
+
+
+── SECCIÓN: EL PROBLEMA ───────────────────────────────────────────
+
+Etiqueta: EL PROBLEMA
+
+Titular:
+  Reportar sostenibilidad
+  es caro, lento y manual.
+
+Subtítulo:
+  Las empresas contratan consultoras que cobran caro, tardan meses y
+  entregan un PDF que nadie sabe ejecutar. El año siguiente vuelven a
+  empezar desde cero.
+
+Tarjeta 1:
+  Título: Datos dispersos en todas partes
+  Texto: Emisiones en facturas, proveedores en correos, consumos en el
+  ERP. Consolidarlos toma meses y el resultado ya está desactualizado
+  antes de entregarse.
+
+Tarjeta 2:
+  Título: Cumplimiento regulatorio con fecha límite
+  Texto: CSRD, GHG Protocol, GRI, ISO 14064, CNBV. Las obligaciones
+  de reporte aumentan cada año y llegan a Latinoamérica entre 2025 y
+  2027. Adaptarse en emergencia cuesta el doble.
+
+Tarjeta 3:
+  Título: Clientes e inversores exigen evidencia
+  Texto: El 82 % de los compradores B2B grandes piden datos de huella
+  de carbono verificados a sus proveedores. Sin esos datos, los contratos
+  se van a quien sí los tiene.
+
+
+── SECCIÓN: LOS AGENTES IA ────────────────────────────────────────
+
+Etiqueta: AGENTES IA
+
+Titular:
+  Tu equipo ESG virtual.
+  Activo en horas, trabajando siempre.
+
+Subtítulo:
+  Tres agentes especializados que reemplazan meses de consultoría.
+  Cada uno tiene un propósito claro, entregables definidos y se conecta
+  con el siguiente para crear un flujo completo de gestión de sostenibilidad.
+
+Agente 1 — Medición Huella CO₂
+  Tagline: Cálculo automático de emisiones GEI
+  Texto: Sube facturas, recibos y archivos de compras. El agente lee,
+  clasifica y calcula tus emisiones de Scope 1, 2 y 3 usando factores
+  oficiales del GHG Protocol e IPCC. Siempre actualizado, sin trabajo
+  manual.
+  Entregables: Registro Scope 1/2/3 · Dashboard de huella · Histórico
+  mensual · Alertas de desviación · Factor de emisión por proveedor
+
+Agente 2 — Monitoreo ESG
+  Tagline: Vigilancia continua de indicadores E, S y G
+  Texto: Monitorea en tiempo real tus indicadores Ambientales, Sociales
+  y de Gobernanza. Detecta brechas de forma proactiva, compara contra
+  benchmarks de tu industria y prioriza las acciones que más impactan
+  tu score.
+  Entregables: Panel E/S/G · Semáforo de cumplimiento · Comparativa
+  vs. industria · Recomendaciones IA priorizadas · Alertas de incumplimiento
+
+Agente 3 — Reporte ESG
+  Tagline: Generación automática de informes regulatorios
+  Texto: Produce los reportes exigidos por los marcos internacionales
+  más importantes: GRI, CSRD/ESRS, CDP y CNBV. En formato listo para
+  publicar, auditar o entregar a inversores.
+  Entregables: Reporte GRI Standards · Reporte CSRD/ESRS · Reporte CDP
+  · Memoria anual de sostenibilidad · Informe CNBV (México)
+
+
+── SECCIÓN: CÓMO FUNCIONA ─────────────────────────────────────────
+
+Etiqueta: CÓMO FUNCIONA
+
+Titular:
+  Activo en horas.
+  Resultados desde el primer día.
+
+Subtítulo:
+  Sin implementaciones largas. Sin equipos de consultoría. Solo conecta
+  tus datos y los agentes hacen el resto.
+
+Paso 1: Sube tu inventario de datos (30 min)
+  Arrastra facturas de energía, archivos de compras y documentos de
+  proveedores al módulo Inventario. La IA los lee, extrae los datos
+  relevantes y los clasifica automáticamente.
+
+Paso 2: Revisa tu huella de emisiones (mismo día)
+  El agente Medición Huella CO₂ mapea cada dato al Scope correspondiente
+  según GHG Protocol. Ves tu huella total y desglosada por área, sede
+  o producto en un dashboard en tiempo real.
+
+Paso 3: Monitorea tus indicadores ESG (semanal)
+  El agente Monitoreo ESG cruza tus métricas ambientales, sociales y de
+  gobernanza contra tus metas y los estándares de tu sector. Recibes
+  alertas y recomendaciones automáticas.
+
+Paso 4: Descarga tu reporte listo para auditoría (en minutos)
+  El agente Reporte ESG genera el documento en el formato que necesites:
+  GRI, CSRD/ESRS, CDP o personalizado para tu cliente o inversor. Sin
+  tablas en Excel, sin copiar datos a mano.
+
+
+── SECCIÓN: MÓDULOS DE LA PLATAFORMA ─────────────────────────────
+
+Etiqueta: PLATAFORMA
+
+Titular:
+  Todo lo que necesitas para
+  gestionar tu sostenibilidad.
+
+Módulo 1: Inventario
+  Centraliza facturas, normativas e integraciones. La IA procesa cada
+  documento y lo convierte en datos listos para tus agentes.
+
+Módulo 2: Agentes IA
+  Activa los agentes especializados que automatizan medición, monitoreo
+  y reporte. Cada uno tiene entregables claros y frecuencia configurable.
+
+Módulo 3: Dashboard
+  Vista integrada de tu huella de carbono, score ESG y estado de tus
+  metas. Insights generados por IA directamente en tu pantalla.
+
+Módulo 4: Compliance
+  Análisis de brechas regulatorias. Compara tu estado actual contra
+  CSRD, GRI, ISO 14064 y la normativa de tu país.
+
+Módulo 5: Recursos
+  Centro de información con guías, tutoriales en video y los estándares
+  de sostenibilidad más importantes. Todo en un solo lugar.
+
+
+── SECCIÓN: POR QUÉ AHORA ─────────────────────────────────────────
+
+Etiqueta: REGULACIÓN
+
+Titular:
+  La regulación ya llegó.
+  Solo falta que te encuentre preparado.
+
+Subtítulo:
+  Las empresas que midan hoy tienen ventaja competitiva, acceso a capital
+  verde y menos riesgo regulatorio. Las que esperen pagarán el doble
+  en adaptación de emergencia.
+
+Punto 1:
+  Título: CSRD obliga desde 2024 en Europa
+  Texto: Más de 50,000 empresas reportan obligatoriamente. Sus proveedores
+  latinoamericanos también deben demostrar cumplimiento para mantener esos
+  contratos.
+
+Punto 2:
+  Título: Financiamiento verde con condiciones ESG
+  Texto: IFC, BID y grandes banca privada condicionan tasas preferenciales
+  a métricas de carbono verificadas. Sin datos, pagas más por el mismo dinero.
+
+Punto 3:
+  Título: Reguladores locales en movimiento
+  Texto: CNBV en México, CMF en Chile y CVM en Brasil ya emitieron guías.
+  En 2–3 años será obligatorio. Quien llegue tarde pagará el costo de
+  adaptarse en crisis.
+
+
+── SECCIÓN: PRECIO ────────────────────────────────────────────────
+
+Etiqueta: PRECIO
+
+Titular:
+  Transparente.
+  Sin sorpresas al final del mes.
+
+Subtítulo:
+  Empieza gratis y escala cuando necesites reportes más completos,
+  múltiples sedes o más agentes activos. Sin contratos anuales.
+
+Plan Starter — Gratis
+  Para: Empresas que quieren entender su punto de partida sin riesgo.
+  Incluye:
+  - Agente Medición Huella CO₂ (Scope 1 y 2)
+  - 1 sede / planta
+  - Reporte PDF básico
+  - Hasta 3 usuarios
+  - Centro de Recursos completo
+  CTA: Empezar gratis →
+
+Plan Pro — $490 USD / mes
+  Para: Empresas que necesitan cumplir con clientes, inversores o
+  reguladores.
+  Incluye:
+  - Scope 1, 2 y 3 completo
+  - Agentes Monitoreo ESG + Reporte ESG incluidos
+  - Multi-sede ilimitado
+  - Reportes GRI, CSRD/ESRS y CDP
+  - Dashboard con insights IA
+  - Módulo Compliance con análisis de brechas
+  - Soporte prioritario
+  CTA: Hablar con ventas →
+
+Nota bajo precios:
+  "Por 1/10 del costo de una consultoría ESG tradicional."
+
+
+── CTA FINAL ──────────────────────────────────────────────────────
+
+Etiqueta: EMPIEZA HOY
+
+Titular:
+  Tu primer inventario de emisiones
+  listo esta semana.
+
+Subtítulo:
+  Sin consultores. Sin meses de espera. Solo sube tus facturas y los
+  agentes de IA hacen el resto.
+
+Botón primario:   Calcular mi huella gratis →
+Botón secundario: Pedir una demo
+
+
+── PIE DE PÁGINA ──────────────────────────────────────────────────
+
+Tagline: Sustenty — Gestión ESG impulsada por IA.
+Links: Contacto · Privacidad · Términos · hola@sustenty.com
+© 2026 Sustenty. Todos los derechos reservados.
+
+
+════════════════════════════════════════════════════════════════════
+  PARTE 2 — PITCH DECK (6 SLIDES)
+════════════════════════════════════════════════════════════════════
+
+
+── SLIDE 1 — PORTADA ──────────────────────────────────────────────
+
+Logo + wordmark: Sustenty
+
+Titular principal:
+  Gestión ESG impulsada
+  por agentes de IA.
+
+Subtítulo:
+  La primera plataforma latinoamericana que automatiza medición de
+  huella de carbono, monitoreo ESG y reportes regulatorios mediante
+  agentes de inteligencia artificial especializados.
+
+Estadísticas destacadas (3 cifras):
+  $50B    mercado global de software ESG en 2030
+  90%     empresas sin medición continua de emisiones hoy
+  0       plataformas de agentes IA ESG en Latinoamérica
+
+
+── SLIDE 2 — EL PROBLEMA ──────────────────────────────────────────
+
+Titular:
+  Las empresas quieren
+  ser sostenibles.
+  El proceso las frena.
+
+Punto 1: Los datos están en todas partes
+  Emisiones en facturas, proveedores en correos, consumos en el ERP.
+  Consolidarlos toma meses. La mayoría lo hace en Excel, una vez al
+  año, con datos ya desactualizados.
+
+Punto 2: Resolverlo cuesta una fortuna
+  Los consultores cobran entre $15,000 y $80,000 USD por reporte y
+  tardan 6 meses o más. Solo las empresas grandes pueden pagarlo.
+  El resto no hace nada.
+
+Punto 3: Y la regulación no espera
+  CSRD, GHG Protocol, GRI, CNBV. Las obligaciones de reporte llegan
+  a Latinoamérica entre 2025 y 2027. Adaptarse en emergencia cuesta
+  el doble y daña la reputación.
+
+
+── SLIDE 3 — LA SOLUCIÓN ──────────────────────────────────────────
+
+Titular:
+  Tres agentes de IA.
+  Un flujo completo de
+  gestión de sostenibilidad.
+
+Subtítulo:
+  Activas los agentes en horas. Ellos trabajan solos: conectan tus
+  datos, calculan, monitorean, detectan brechas y generan reportes
+  listos para reguladores e inversores.
+
+Agente 1 — Medición Huella CO₂
+  Calcula Scope 1, 2 y 3 a partir de facturas, sistemas ERP e
+  integraciones. Entrega dashboard de emisiones, histórico mensual y
+  alertas de desviación en tiempo real.
+
+Agente 2 — Monitoreo ESG
+  Monitorea indicadores Ambientales, Sociales y de Gobernanza. Detecta
+  brechas, compara contra benchmarks de industria y prioriza acciones
+  con mayor impacto en el score ESG.
+
+Agente 3 — Reporte ESG
+  Genera automáticamente reportes GRI, CSRD/ESRS, CDP y CNBV. Listos
+  para auditar, publicar o entregar a inversores. Sin tablas manuales.
+
+Módulos complementarios:
+  Inventario (Facturas + Normativas + Integraciones)
+  Dashboard integrado CO₂ + ESG + IA
+  Compliance con análisis de brechas regulatorias
+  Centro de Recursos (guías, tutoriales, estándares ISO)
+
+
+── SLIDE 4 — EL MOMENTO ES AHORA ─────────────────────────────────
+
+Titular:
+  La ventana de oportunidad
+  se cierra en 2027.
+
+Punto 1: Los gobiernos lo están haciendo obligatorio
+  Chile, México, Europa y Estados Unidos. Las empresas tienen que
+  reportar sus emisiones o enfrentar sanciones legales y financieras.
+  La ventana de adaptación voluntaria cierra entre 2025 y 2027.
+
+Punto 2: El mercado ya castiga a quien no reporta
+  Inversores institucionales, grandes bancas y compradores B2B
+  excluyen empresas sin métricas de sostenibilidad verificables.
+  No es una decisión ética — es una decisión de riesgo financiero.
+
+Punto 3: La IA lo hace posible por primera vez
+  Esto era inviable hace tres años. Hoy los agentes pueden conectar
+  fuentes de datos heterogéneas, razonar sobre normativas y producir
+  reportes certificables de forma autónoma. Nadie lo ha construido
+  para el mercado latinoamericano.
+
+
+── SLIDE 5 — EL MERCADO ───────────────────────────────────────────
+
+Titular:
+  Un problema de toda
+  empresa en el mundo.
+
+Cifra 1: $50B
+  Mercado global de software de sostenibilidad en 2030
+  (CAGR +25% anual desde 2023)
+
+Cifra 2: 90%
+  De las empresas sin medición continua de emisiones hoy.
+  El mercado desatendido es enorme y la regulación los está empujando.
+
+Cifra 3: 0
+  Plataformas de agentes IA ESG especializadas en Latinoamérica.
+  Ventana de entrada con ventaja de primero en llegar.
+
+Estrategia de expansión:
+  Empezamos en Chile → México → Colombia → resto de LATAM.
+  El problema es idéntico en cada país, solo cambia el nombre del
+  regulador.
+
+
+── SLIDE 6 — INVERSIÓN / CIERRE ───────────────────────────────────
+
+Titular:
+  IA para proteger
+  el planeta.
+  Y hacer crecer tu negocio.
+
+Subtítulo:
+  Buscamos USD $350,000 (seed) para activar los primeros 50 agentes
+  en empresas latinoamericanas antes de 2027 y establecer posición
+  dominante antes de que llegue la competencia global.
+
+Uso de los fondos:
+  40% — Desarrollo de producto (nuevos agentes, integraciones)
+  35% — Ventas y expansión (Chile → México → Colombia)
+  15% — Infraestructura y seguridad
+  10% — Legal, cumplimiento y certificaciones
+
+Lo que ofrecemos a los inversores:
+  - Acceso al mercado ESG de mayor crecimiento en LATAM
+  - Modelo SaaS recurrente con contratos anuales
+  - Ventaja de primero en llegar con tecnología de agentes IA
+  - Roadmap regulatorio predecible que garantiza demanda creciente
+
+CTA:
+  Conversemos →   hola@sustenty.com
+
+
+════════════════════════════════════════════════════════════════════
+  NOTAS PARA REVISIÓN
+════════════════════════════════════════════════════════════════════
+
+1. CIFRA DE INVERSIÓN: El pitch actual dice "$200M CLP". La propuesta
+   sube a USD $350,000 (equivalente aprox.) y cambia la denominación
+   a dólares para audiencias internacionales. Ajusta según tu ronda real.
+
+2. AGENTES EN LANDING: La sección actual de la web habla de "Calculador,
+   Reportero, Optimizador" — nombres genéricos. La propuesta los
+   reemplaza con los nombres reales de la plataforma construida:
+   "Medición Huella CO₂, Monitoreo ESG, Reporte ESG".
+
+3. MÓDULOS: La landing actual no menciona Inventario, Compliance ni
+   Recursos. La propuesta agrega una sección de módulos para mostrar
+   la amplitud del producto.
+
+4. PRECIO: Los planes actuales son "Starter gratis" y "Pro $490/mes".
+   Si quieres ajustar, dime y lo reflejamos en el texto.
+
+5. PITCH SLIDE 6: Si la ronda, el porcentaje de equity u otros términos
+   son diferentes, indícalo y lo corrijo antes de aplicar.
+
+════════════════════════════════════════════════════════════════════
